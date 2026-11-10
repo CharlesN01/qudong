@@ -1,0 +1,55 @@
+<view class="bank-page">
+  <view class="status-pad" style="height: {{statusHeight}}px;"></view>
+  <view class="nav-row" style="height: {{navBarHeight}}px;">
+    <view class="back-pill" role="button" bindtap="backHome" hover-class="pill-pressed">‹ 返回</view>
+  </view>
+
+  <view class="bank-main">
+    <view class="intro">
+      <view class="intro-line">
+        <text class="intro-title">{{subjectName}}刷题</text>
+        <text class="subject-tag">山东专升本</text>
+      </view>
+      <text class="intro-sub">从基础到冲刺，每天积累一点</text>
+    </view>
+
+    <view class="stats-card">
+      <view class="stats-top">
+        <text class="stats-label">我的刷题进度</text>
+        <view class="stats-more" role="button" bindtap="openStats" hover-class="pill-pressed"><view class="stats-pie bico-pie"></view><text>统计详情</text></view>
+      </view>
+      <view class="stats-grid">
+        <view class="metric"><text class="metric-num">{{stats.today}}</text><text class="metric-label">今日刷题</text></view>
+        <view class="metric"><text class="metric-num">{{stats.total}}</text><text class="metric-label">累计刷题</text></view>
+        <view class="metric"><text class="metric-num">{{stats.minutes}}</text><text class="metric-label">刷题时长 / 分钟</text></view>
+      </view>
+    </view>
+
+    <view class="books">
+      <view class="book" role="button" bindtap="openWrongBook" hover-class="book-pressed">
+        <view class="book-icon bico-wrong"></view><text class="book-label">错题本</text>
+      </view>
+      <view class="book" role="button" bindtap="openFavoriteBook" hover-class="book-pressed">
+        <view class="book-icon book-icon-fav bico-fav"></view><text class="book-label">收藏本</text>
+      </view>
+    </view>
+
+    <view class="section-title">
+      <text class="section-h2">练习专区</text>
+      <text class="section-cap">选一种方式开始</text>
+    </view>
+    <view class="modes">
+      <view wx:for="{{modes}}" wx:key="id" class="mode mode-{{item.id}}" data-mode="{{item.id}}" bindtap="openMode" hover-class="mode-pressed">
+        <text class="mode-title">{{item.name}}</text>
+        <text class="mode-desc">{{item.desc}}</text>
+        <view class="mode-bottom">
+          <view class="start">开始练习</view>
+          <view class="mode-ico bico-{{item.id}}"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="bank-hint">加载中...</view>
+  <view wx:if="{{errorMessage}}" class="bank-hint bank-hint-error">{{errorMessage}}</view>
+</view>

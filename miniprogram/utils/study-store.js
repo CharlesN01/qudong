@@ -1,0 +1,176 @@
+const mock = require('../data/mock');
+const STORAGE_PREFIX = 'chinese-study.frontend.v1:';
+const STORAGE_KEY = STORAGE_PREFIX + 'guest';
+const session = require('./session');
+const validIds = new Set(mock.questions.map((question) => question.id));
+let cached;
+let cachedKey = '';
+
+function storageKey() {
+  try {
+    const current = session.getSession && session.getSession();
+    const id = current && current.user && current.user.id;
+    return STORAGE_PREFIX + (id ? 'user:' + String(id) : 'guest');
+  } catch (_) { return STORAGE_KEY; }
+}
+
+function todayKey(now) {
+  const date = new Date(now === undefined ? Date.now() : now);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
+function freshState() {
+  return { version: 1, favorites: [], favoriteDates: {}, mastered: {}, studyDates: [], mode: 'writing', resume: null };
+}
+
+function cloneJson(value) {
+  try { return JSON.parse(JSON.stringify(value)); } catch (_) { return null; }
+}
+
+function normalizeGroupCache(value) {
+  const cache = {};
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return cache;
+  Object.keys(value).forEach((key) => {
+    const index = Number(key);
+    if (!Number.isInteger(index) || index < 1 || !Array.isArray(value[key])) return;
+    const rows = value[key].filter((row) => row && typeof row === 'object' && row.id != null)
+      .slice(0, 12).map((row) => cloneJson(row)).filter(Boolean);
+    if (rows.length) cache[String(index)] = rows;
+  });
+  return cache;
+}
+
+function normalizeResume(input) {
+  if (!input || typeof input !== 'object' || typeof input.path !== 'string') return null;
+  const groupIds = Array.isArray(input.groupIds)
+    ? Array.from(new Set(input.groupIds.map((id) => String(id || '').trim()).filter(Boolean)))
+    : [];
+  const resume = {
+    path: input.path,
+    options: input.options && typeof input.options === 'object' ? cloneJson(input.options) || {} : {},
+    groupIds,
+    groupIndex: Math.max(0, Math.floor(Number(input.groupIndex) || 0))
+  };
+  if (Object.prototype.hasOwnProperty.call(input, 'roundId')) resume.roundId = input.roundId == null ? null : String(input.roundId);
+  if (Object.prototype.hasOwnProperty.call(input, 'groupCount')) resume.groupCount = Math.max(0, Math.floor(Number(input.groupCount) || 0));
+  if (Object.prototype.hasOwnProperty.call(input, 'roundQuestionCount')) resume.roundQuestionCount = Math.max(0, Math.floor(Number(input.roundQuestionCount) || 0));
+  if (Object.prototype.hasOwnProperty.call(input, 'groupPageSize')) resume.groupPageSize = Math.max(0, Math.floor(Number(input.groupPageSize) || 0));
+  if (Object.prototype.hasOwnProperty.call(input, 'groupCache')) resume.groupCache = normalizeGroupCache(input.groupCache);
+  return resume;
+}
+
+function normalize(input) {
+  if (!input || typeof input !== 'object' || input.version !== 1) return freshState();
+  const mastered = {};
+  Object.keys(input.mastered || {}).forEach((id) => {
+    if (validIds.has(id) && /^\d{4}-\d{2}-\d{2}$/.test(input.mastered[id])) mastered[id] = input.mastered[id];
+  });
+  const favorites = Array.isArray(input.favorites) ? input.favorites.filter((id) => validIds.has(id)) : [];
+  const favoriteDates = {};
+  favorites.forEach((id) => {
+    const day = input.favoriteDates && input.favoriteDates[id];
+    if (typeof day === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(day)) favoriteDates[id] = day;
+  });
+  const studyDates = Array.isArray(input.studyDates) ? input.studyDates.filter((day) => /^\d{4}-\d{2}-\d{2}$/.test(day)) : [];
+  const allowedPaths = ['/pages/literature/index', '/pages/practice/index', '/pages/random/index'];
+  const resume = input.resume && allowedPaths.indexOf(input.resume.path) !== -1 ? normalizeResume(input.resume) : null;
+  return { version: 1, favorites: Array.from(new Set(favorites)), favoriteDates, mastered, studyDates: Array.from(new Set(studyDates)), mode: input.mode === 'reciting' ? 'reciting' : 'writing', resume };
+}
+
+function getState() {
+  const key = storageKey();
+  if (!cached || cachedKey !== key) {
+    cachedKey = key;
+    try { cached = normalize(typeof wx !== 'undefined' ? wx.getStorageSync(key) : null); }
+    catch (_) { cached = freshState(); }
+  }
+  return JSON.parse(JSON.stringify(cached));
+}
+
+function save(state) {
+  const key = storageKey();
+  cachedKey = key;
+  cached = normalize(state);
+  try {
+    if (typeof wx !== 'undefined') wx.setStorageSync(key, cached);
+  } catch (_) {
+    if (typeof wx !== 'undefined' && wx.showToast) wx.showToast({ title: '记录暂未保存，请稍后重试', icon: 'none' });
+  }
+  return getState();
+}
+
+function toggleFavorite(id) {
+  if (!validIds.has(id)) return false;
+  const state = getState();
+  const index = state.favorites.indexOf(id);
+  if (index === -1) {
+    state.favorites.push(id);
+    state.favoriteDates[id] = todayKey();
+  } else {
+    state.favorites.splice(index, 1);
+    delete state.favoriteDates[id];
+  }
+  save(state);
+  return index === -1;
+}
+
+function toggleMastered(id) {
+  if (!validIds.has(id)) return false;
+  const state = getState();
+  const already = Object.prototype.hasOwnProperty.call(state.mastered, id);
+  if (already) delete state.mastered[id];
+  else {
+    const date = todayKey();
+    state.mastered[id] = date;
+    if (state.studyDates.indexOf(date) === -1) state.studyDates.push(date);
+  }
+  save(state);
+  return !already;
+}
+
+function getMode() { return getState().mode; }
+function setMode(mode) {
+  const state = getState();
+  state.mode = mode === 'reciting' ? 'reciting' : 'writing';
+  save(state);
+  return state.mode;
+}
+
+function saveResume(record) {
+  const state = getState();
+  state.resume = record ? normalizeResume(record) : null;
+  save(state);
+}
+function clear() {
+  const key = storageKey();
+  cached = freshState();
+  cachedKey = key;
+  try { if (typeof wx !== 'undefined') wx.removeStorageSync(key); } catch (_) {}
+}
+function getResume() { return getState().resume; }
+
+function getStats(now) {
+  const state = getState();
+  const ids = Object.keys(state.mastered);
+  const articleLearnedCount = mock.articles.filter((article) => {
+    const items = mock.questions.filter((question) => question.articleId === article.id);
+    return items.length > 0 && items.every((question) => state.mastered[question.id]);
+  }).length;
+  const date = new Date(now === undefined ? Date.now() : now);
+  const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const examParts = mock.config.examDate.split('-').map(Number);
+  const exam = new Date(examParts[0], examParts[1] - 1, examParts[2]).getTime();
+  return {
+    masteredCount: ids.length, studyDays: state.studyDates.length,
+    completion: mock.questions.length ? Math.round(ids.length * 100 / mock.questions.length) : 0,
+    todayCount: ids.filter((id) => state.mastered[id] === todayKey(now)).length,
+    todayTarget: mock.config.dailyTarget,
+    daysUntilExam: Math.max(0, Math.ceil((exam - dayStart) / 86400000)),
+    totalQuestions: mock.questions.length, articleLearnedCount,
+    articleTotal: mock.articles.length, favoriteCount: state.favorites.length
+  };
+}
+
+module.exports = { STORAGE_KEY, getState, getStats, getMode, setMode, toggleFavorite, toggleMastered, saveResume, getResume, todayKey, clear };

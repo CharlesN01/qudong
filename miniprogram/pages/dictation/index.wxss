@@ -1,0 +1,246 @@
+.board {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fb;
+  color: #223954;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow: hidden;
+}
+
+.topbar {
+  flex: none;
+  height: 100rpx;
+  padding: 0 28rpx;
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  background: #ffffff;
+  border-bottom: 2rpx solid #edf0f4;
+}
+.back {
+  flex: none;
+  padding: 10rpx 20rpx 10rpx 0;
+  color: #57769f;
+  font-size: 26rpx;
+}
+.title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4rpx;
+}
+.title-strong {
+  color: #223954;
+  font-size: 32rpx;
+  font-weight: 700;
+}
+.title-sub {
+  color: #8d9aab;
+  font-size: 20rpx;
+}
+
+.question-strip {
+  flex: none;
+  margin: 20rpx 24rpx 0;
+  padding: 22rpx 24rpx;
+  border: 2rpx solid #e7ecf2;
+  border-radius: 20rpx;
+  background: #ffffff;
+}
+.strip-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.strip-label {
+  color: #5c7ea8;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+.strip-hint {
+  color: #a3b1c2;
+  font-size: 20rpx;
+}
+.strip-text {
+  display: block;
+  margin-top: 10rpx;
+  color: #3a4d66;
+  font-size: 26rpx;
+  line-height: 1.5;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+  margin-top: 16rpx;
+}
+.chip {
+  padding: 8rpx 20rpx;
+  border-radius: 24rpx;
+  background: #f0f3f7;
+  color: #667487;
+  font-size: 22rpx;
+}
+.chip-on {
+  background: #e6f7f0;
+  color: #12905f;
+  font-weight: 700;
+}
+
+/* 纸面 */
+.canvas-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 20rpx 24rpx;
+  border: 2rpx solid #e4e9f1;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background-color: #ffffff;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 63rpx,
+    #eaf0f8 63rpx,
+    #eaf0f8 65rpx
+  );
+}
+.paper {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+.empty-tip {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.empty-tip-text {
+  color: #c2cddb;
+  font-size: 26rpx;
+}
+
+/* 工具栏 */
+.toolbar {
+  flex: none;
+  padding: 0 24rpx calc(24rpx + env(safe-area-inset-bottom));
+}
+.tool-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 18rpx;
+  border: 2rpx solid #e7ecf2;
+  border-radius: 20rpx;
+  background: #ffffff;
+}
+.tool {
+  padding: 12rpx 22rpx;
+  border-radius: 14rpx;
+  background: #f2f5f9;
+  color: #5c7ea8;
+  font-size: 24rpx;
+}
+.tool-on {
+  background: #223954;
+  color: #ffffff;
+  font-weight: 600;
+}
+.divide {
+  width: 2rpx;
+  height: 32rpx;
+  background: #e6ebf2;
+}
+.sizes {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  margin-left: auto;
+}
+.size-dot {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f2f5f9;
+}
+.size-on {
+  background: #dfeaf7;
+  box-shadow: inset 0 0 0 2rpx #477bb9;
+}
+.dot {
+  border-radius: 50%;
+  background: #5c7089;
+}
+.dot-3 {
+  width: 8rpx;
+  height: 8rpx;
+}
+.dot-6 {
+  width: 14rpx;
+  height: 14rpx;
+}
+.dot-10 {
+  width: 20rpx;
+  height: 20rpx;
+}
+.colors {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  margin-left: 8rpx;
+}
+.color {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 3rpx solid #ffffff;
+  box-shadow: 0 0 0 2rpx #e0e7f0;
+}
+.color-on {
+  box-shadow: 0 0 0 3rpx #477bb9;
+}
+
+.footer-actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+.clear {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #e1eaf5;
+  border-radius: 18rpx;
+  background: #ffffff;
+  color: #748297;
+  font-size: 28rpx;
+}
+.save {
+  flex: 1;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  background: #477bb9;
+  color: #ffffff;
+  font-size: 28rpx;
+  font-weight: 700;
+  box-shadow: 0 8rpx 20rpx rgba(71, 123, 185, 0.24);
+}
+
+.tap-dim {
+  opacity: 0.88;
+}

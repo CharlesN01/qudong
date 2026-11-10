@@ -1,0 +1,81 @@
+<view class="board">
+  <safe-top />
+
+  <view class="topbar">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">返回</view>
+    <view class="title">
+      <text class="title-strong">默写板</text>
+      <text class="title-sub">通用学习工具 · 公式、单词、知识点都可以写</text>
+    </view>
+  </view>
+
+  <view class="question-strip">
+    <view class="strip-top">
+      <text class="strip-label">当前题目</text>
+      <text class="strip-hint">可随时切换科目</text>
+    </view>
+    <text class="strip-text">请写下这道题的答案、关键词或解题过程</text>
+    <view class="chips">
+      <view
+        wx:for="{{subjects}}"
+        wx:key="*this"
+        class="chip {{subject === item ? 'chip-on' : ''}}"
+        data-value="{{item}}"
+        bindtap="pickSubject"
+      >{{item}}</view>
+    </view>
+  </view>
+
+  <view class="canvas-wrap">
+    <canvas
+      type="2d"
+      id="paper"
+      class="paper"
+      disable-scroll
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+      bindtouchend="onTouchEnd"
+      bindtouchcancel="onTouchEnd"
+    ></canvas>
+    <view wx:if="{{!hasStroke}}" class="empty-tip">
+      <text class="empty-tip-text">在这里写下你的解题过程</text>
+    </view>
+  </view>
+
+  <view class="toolbar">
+    <view class="tool-row">
+      <view class="tool {{tool === 'pen' ? 'tool-on' : ''}}" data-value="pen" bindtap="pickTool">画笔</view>
+      <view class="tool {{tool === 'eraser' ? 'tool-on' : ''}}" data-value="eraser" bindtap="pickTool">擦除</view>
+      <view class="divide"></view>
+      <view class="tool" bindtap="undo">撤销</view>
+
+      <view class="sizes">
+        <view
+          wx:for="{{sizes}}"
+          wx:key="value"
+          class="size-dot {{size === item.value ? 'size-on' : ''}}"
+          data-value="{{item.value}}"
+          bindtap="pickSize"
+        >
+          <view class="dot dot-{{item.value}}"></view>
+        </view>
+      </view>
+
+      <view class="colors">
+        <view
+          wx:for="{{colors}}"
+          wx:key="value"
+          class="color {{color === item.value ? 'color-on' : ''}}"
+          style="background: {{item.value}}"
+          data-value="{{item.value}}"
+          bindtap="pickColor"
+        ></view>
+      </view>
+    </view>
+
+    <view class="footer-actions">
+      <view class="clear" bindtap="clear" hover-class="tap-dim">清空</view>
+      <view class="save" bindtap="save" hover-class="tap-dim">保存</view>
+    </view>
+  </view>
+</view>

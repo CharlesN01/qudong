@@ -1,0 +1,8 @@
+{
+  "navigationStyle": "custom",
+  "backgroundColor": "#F5FAFE",
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "study-navbar": "/components/study-navbar/index"
+  }
+}

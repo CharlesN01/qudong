@@ -1,0 +1,292 @@
+<view class="page">
+  <view class="status-pad" style="height: {{statusHeight}}px;"></view>
+
+  <view class="exambar" style="height: {{navBarHeight}}px; padding-right: {{rightSpace}}px;">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹</view>
+    <text class="exam-name">{{examName}}</text>
+    <view class="timer" wx:if="{{!loading && !failed}}">◷ 剩余 {{remainText}}</view>
+    <view class="timer-space" wx:else></view>
+  </view>
+
+  <view wx:if="{{!loading && !failed && view === 'doing'}}" class="mode-row">
+    <view class="mode-btn {{mode === 'browse' ? 'mode-on' : ''}}" data-mode="browse" bindtap="switchMode">滚动浏览</view>
+    <view class="mode-btn {{mode === 'single' ? 'mode-on' : ''}}" data-mode="single" bindtap="switchMode">单题作答</view>
+  </view>
+
+  <view wx:if="{{!loading && !failed && view === 'doing'}}" class="progress-line">
+    <view class="progress-fill" style="width: {{total ? (answeredCount / total * 100) : 0}}%;"></view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state">
+    <text class="state-text">正在加载试卷…</text>
+  </view>
+
+  <view wx:elif="{{failed}}" class="state">
+    <text class="state-title">这套试卷加载不出来</text>
+    <text class="state-text">请确认题库服务已启动，或返回换一套试卷</text>
+    <view class="state-btn" bindtap="retry" hover-class="tap-dim">重新加载</view>
+  </view>
+
+  <!-- ============ 滚动浏览 ============ -->
+  <view wx:elif="{{view === 'doing' && mode === 'browse'}}" class="main">
+    <view class="summary">
+      <text class="summary-strong">滚动浏览 · 共 {{total}} 题</text>
+      <text class="summary-hint">连续查看整套试题</text>
+    </view>
+
+    <view class="browse-list">
+      <view wx:for="{{questions}}" wx:key="id" wx:for-index="qi" class="q-card">
+        <view class="q-head">
+          <text class="q-no">第 {{item.no}} 题 · {{item.typeName}}</text>
+          <text class="q-status {{item.done ? 'q-status-done' : ''}}">{{item.done ? '已作答' : '待作答'}}</text>
+          <view class="star {{item.favorite ? 'star-on' : ''}}" data-index="{{qi}}" catchtap="toggleStar" hover-class="tap-dim">{{item.favorite ? '★' : '☆'}}</view>
+        </view>
+
+        <view class="stem">
+          <block wx:for="{{item.stemParts}}" wx:key="index" wx:for-item="part">
+            <text wx:if="{{part.kind === 'text'}}">{{part.text}}</text>
+            <image wx:else class="stem-image" src="{{part.url}}" mode="widthFix" data-src="{{part.url}}" bindtap="previewImage" />
+          </block>
+        </view>
+
+        <view wx:if="{{item.objective}}" class="options">
+          <view
+            wx:for="{{item.options}}"
+            wx:key="letter"
+            wx:for-item="opt"
+            class="option {{opt.picked ? 'option-on' : ''}}"
+            data-index="{{qi}}"
+            data-letter="{{opt.letter}}"
+            bindtap="pickOption"
+            hover-class="tap-dim"
+          >
+            <text class="option-letter">{{opt.letter}}</text>
+            <text class="option-text">{{opt.text}}</text>
+          </view>
+        </view>
+        <textarea
+          wx:else
+          class="answer-input"
+          value="{{item.draft}}"
+          placeholder="写下你的答案…"
+          data-index="{{qi}}"
+          bindinput="onDraftInput"
+          auto-height="{{true}}"
+          maxlength="-1"
+        ></textarea>
+
+        <view class="q-foot">
+          <text class="q-tip">{{item.objective ? '本题可直接作答' : '写完后到「单题作答」里提交'}}</text>
+          <view class="board-btn" data-index="{{qi}}" bindtap="openBoard" hover-class="tap-dim">✎ 默写板</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="browse-space"></view>
+    <view class="browse-bar">
+      <view class="bar-btn" bindtap="openSheet" hover-class="tap-dim">▣ 答题卡</view>
+      <view class="bar-btn bar-primary" bindtap="submit" hover-class="tap-dim">提交试卷</view>
+    </view>
+  </view>
+
+  <!-- ============ 单题作答 ============ -->
+  <view wx:elif="{{view === 'doing'}}" class="main">
+    <view class="summary">
+      <text class="summary-strong">已作答 {{answeredCount}}/{{total}} 题</text>
+      <text class="summary-hint">{{current.objective ? (current.type === 'multiple' ? '多选题，可选多个' : '单选，选一个') : (current.gradable ? '填空题，按答案文字判分' : '主观题，写完后对照参考答案')}}</text>
+    </view>
+
+    <view class="q-single">
+      <view class="labels">
+        <text class="label">第 {{current.no}} 题</text>
+        <text class="label label-type">{{current.typeName}}</text>
+        <view class="star {{current.favorite ? 'star-on' : ''}}" data-index="{{index}}" catchtap="toggleStar" hover-class="tap-dim">{{current.favorite ? '★' : '☆'}}</view>
+      </view>
+
+      <text class="source">来源：〔{{current.source || examName}}〕</text>
+
+      <view class="stem stem-single">
+        <block wx:for="{{current.stemParts}}" wx:key="index">
+          <text wx:if="{{item.kind === 'text'}}">{{item.text}}</text>
+          <image wx:else class="stem-image" src="{{item.url}}" mode="widthFix" data-src="{{item.url}}" bindtap="previewImage" />
+        </block>
+      </view>
+
+      <view wx:if="{{current.objective}}" class="options">
+        <view
+          wx:for="{{current.options}}"
+          wx:key="letter"
+          class="option {{item.picked ? 'option-on' : ''}}"
+          data-index="{{index}}"
+          data-letter="{{item.letter}}"
+          bindtap="pickOption"
+          hover-class="tap-dim"
+        >
+          <text class="option-letter">{{item.letter}}</text>
+          <text class="option-text">{{item.text}}</text>
+        </view>
+      </view>
+
+      <view wx:else class="answer-area">
+        <textarea
+          wx:if="{{!current.revealed && !current.submitted}}"
+          class="answer-input"
+          value="{{current.draft}}"
+          placeholder="在这里写出你的答案"
+          bindinput="onDraftInput"
+          auto-height="{{true}}"
+          maxlength="-1"
+        ></textarea>
+        <text wx:elif="{{current.draft}}" class="answer-draft">我的作答：{{current.draft}}</text>
+
+        <view wx:if="{{current.gradable && !current.revealed && !current.submitted}}" class="reveal-btn reveal-btn-solid" bindtap="confirmDraft" hover-class="tap-dim">提交答案</view>
+        <view wx:if="{{!current.gradable && !current.revealed && !current.submitted}}" class="reveal-btn" bindtap="revealAnswer" hover-class="tap-dim">查看参考答案</view>
+
+        <text wx:if="{{current.gradable && current.revealed}}" class="verdict {{current.draftCorrect ? 'verdict-ok' : 'verdict-no'}}">{{current.draftCorrect ? '回答正确' : '回答错误'}}</text>
+
+        <view wx:if="{{current.revealed || current.submitted}}" class="answer-box">
+          <text class="answer-caption">参考答案</text>
+          <text class="answer-text">{{current.answerText || '原试卷未提供标准答案'}}</text>
+        </view>
+
+        <view wx:if="{{!current.gradable && (current.revealed || current.submitted) && !current.selfMarked && !current.submitted}}" class="self-mark">
+          <view class="self-btn" data-known="no" bindtap="markSelf" hover-class="tap-dim">还不会</view>
+          <view class="self-btn self-btn-on" data-known="yes" bindtap="markSelf" hover-class="tap-dim">我会了</view>
+        </view>
+        <text wx:if="{{!current.gradable && current.selfMarked && !current.submitted}}" class="tip">已自评：{{current.selfCorrect ? '已掌握' : '待复习'}}</text>
+      </view>
+
+      <view class="board-btn board-btn-wide" data-index="{{index}}" bindtap="openBoard" hover-class="tap-dim">✎ 默写板 <text class="board-hint">草稿演算，按题保存</text></view>
+      <text class="writing-tip">{{current.objective ? '选择答案后可在底部提交试卷。' : '写完后提交，交卷后可查看解析。'}}</text>
+    </view>
+
+    <view class="actions">
+      <view class="action-btn" bindtap="previous" hover-class="tap-dim">‹ 上一题</view>
+      <view class="action-btn" bindtap="openSheet" hover-class="tap-dim">▣ 答题卡</view>
+      <view class="action-btn" bindtap="next" hover-class="tap-dim">下一题 ›</view>
+    </view>
+    <view class="submit-btn" bindtap="submit" hover-class="tap-dim">提交试卷</view>
+    <view class="bottom-space"></view>
+  </view>
+
+  <!-- ============ 结果 ============ -->
+  <view wx:else class="main">
+    <view class="score-card">
+      <text class="score-label">本次模考</text>
+      <view class="score-row">
+        <text class="score-num">{{correctCount}}</text>
+        <text class="score-total">/ {{total}} 题</text>
+      </view>
+      <text class="score-acc">正确率 {{accuracy}}%</text>
+    </view>
+
+    <view class="result-head">
+      <text class="result-title">全部题目答案与解析</text>
+      <text class="result-hint">提交后可复盘</text>
+    </view>
+
+    <view wx:for="{{questions}}" wx:key="id" class="review {{item.correct ? 'review-ok' : 'review-bad'}}">
+      <view class="review-head">
+        <text class="review-no" data-index="{{index}}" bindtap="reviewQuestion">第 {{item.no}} 题</text>
+        <text class="review-tag">{{item.objective || item.gradable ? (item.correct ? '答对' : '答错') : (item.selfMarked ? (item.correct ? '自评已掌握' : '自评待复习') : '未自评')}}</text>
+      </view>
+      <view class="review-stem">
+        <block wx:for="{{item.stemParts}}" wx:key="index" wx:for-item="part">
+          <text wx:if="{{part.kind === 'text'}}">{{part.text}}</text>
+          <image wx:else class="stem-image" src="{{part.url}}" mode="widthFix" data-src="{{part.url}}" bindtap="previewImage" />
+        </block>
+      </view>
+      <view class="review-line">
+        <text class="review-key">你的答案</text>
+        <text class="review-val">{{item.objective ? (item.selected.length ? item.selected : '未作答') : (item.draft ? item.draft : '未作答')}}</text>
+      </view>
+      <view class="review-line">
+        <text class="review-key">正确答案</text>
+        <text class="review-val review-val-right">{{item.answerText || '—'}}</text>
+      </view>
+      <view class="review-expl">
+        <block wx:for="{{item.explanationParts}}" wx:key="index" wx:for-item="part">
+          <text wx:if="{{part.kind === 'text'}}">{{part.text}}</text>
+          <image wx:else class="stem-image" src="{{part.url}}" mode="widthFix" data-src="{{part.url}}" bindtap="previewImage" />
+        </block>
+      </view>
+    </view>
+
+    <view class="submit-btn" bindtap="retake" hover-class="tap-dim">重新模考</view>
+    <view class="bottom-space"></view>
+  </view>
+
+  <!-- ============ 答题卡 ============ -->
+  <view wx:if="{{sheetVisible}}" class="mask" bindtap="closeSheet" catchtouchmove="noop">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-head">
+        <view class="sheet-title"><text class="sheet-icon">▣</text><text>答题卡</text></view>
+        <text class="sheet-count">已作答 {{answeredCount}}/{{total}}</text>
+        <text class="sheet-close" bindtap="closeSheet">×</text>
+      </view>
+      <view class="sheet-legend">
+        <view class="legend-item"><view class="legend-dot"></view><text>未作答</text></view>
+        <view class="legend-item"><view class="legend-dot legend-done"></view><text>已作答</text></view>
+        <view class="legend-item"><view class="legend-dot legend-fav"></view><text>收藏</text></view>
+      </view>
+      <view class="sheet-grid">
+        <view
+          wx:for="{{sheetCells}}"
+          wx:key="index"
+          class="cell {{item.done ? 'cell-done' : ''}} {{item.active ? 'cell-active' : ''}}"
+          data-index="{{item.index}}"
+          bindtap="jumpFromSheet"
+        >{{item.no}}</view>
+      </view>
+      <view class="sheet-foot">
+        <view class="sheet-meta">
+          <text>共 {{total}} 题，已答 {{answeredCount}} 题</text>
+          <text class="sheet-warning">尚有 {{total - answeredCount}} 题未作答</text>
+        </view>
+        <view class="sheet-submit" data-from="sheet" bindtap="submit" hover-class="tap-dim">提交试卷并查看答案</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- ============ 默写板 ============ -->
+  <view wx:if="{{boardVisible}}" class="mask" bindtap="closeBoard" catchtouchmove="noop">
+    <view class="board" catchtap="noop">
+      <view class="board-head">
+        <view class="board-heading">
+          <text class="board-title">默写板</text>
+          <text class="board-sub">{{boardTitle}}</text>
+        </view>
+        <text class="sheet-close" bindtap="closeBoard">×</text>
+      </view>
+      <view class="board-tools">
+        <view class="board-tool {{boardTool === 'pen' ? 'board-tool-on' : ''}}" data-tool="pen" bindtap="boardTool">画笔</view>
+        <view class="board-tool {{boardTool === 'eraser' ? 'board-tool-on' : ''}}" data-tool="eraser" bindtap="boardTool">消除笔</view>
+        <view class="board-tool" data-tool="undo" bindtap="boardTool">撤销</view>
+        <view class="board-colors">
+          <view
+            wx:for="{{boardColors}}"
+            wx:key="index"
+            class="board-color {{boardColor === item ? 'board-color-on' : ''}}"
+            style="background: {{item}};"
+            data-color="{{item}}"
+            bindtap="boardColor"
+          ></view>
+        </view>
+      </view>
+      <canvas
+        type="2d"
+        id="boardCanvas"
+        class="board-canvas"
+        disable-scroll="{{true}}"
+        bindtouchstart="boardStart"
+        bindtouchmove="boardMove"
+        bindtouchend="boardEnd"
+      ></canvas>
+      <view class="board-foot">
+        <view class="board-btn-plain" bindtap="boardClear">清空</view>
+        <text class="board-saved">{{boardCount ? '已保存 ' + boardCount + ' 笔' : '本题草稿会单独保存'}}</text>
+        <view class="board-save" bindtap="boardSave">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

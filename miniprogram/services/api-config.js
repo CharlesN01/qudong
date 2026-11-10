@@ -1,0 +1,45 @@
+const PRODUCTION_API_BASE_URL = 'https://zsbzy.com';
+// 本地开发指向本机后端。体验版/正式版仍走 PRODUCTION_API_BASE_URL，
+// 上线前要把 PRODUCTION 换成客户自己的域名，否则会连到文常记那台服务器。
+const DEVELOPMENT_API_BASE_URL = 'http://127.0.0.1:8000';
+// A phone cannot reach the developer computer's loopback interface. Keep the
+// public HTTPS service as the default and use extension config for local work.
+const DEFAULT_API_BASE_URL = DEVELOPMENT_API_BASE_URL;
+let configuredBaseUrl = '';
+
+function normalizeBaseUrl(value) {
+  const url = String(value || '').trim().replace(/\/+$/, '');
+  if (!/^https?:\/\/[^/?#@]+(?:\/[^?#]*)?$/i.test(url)) {
+    throw new TypeError('API base URL must be an http(s) URL without credentials, query, or hash.');
+  }
+  return url;
+}
+
+function setApiBaseUrl(value) {
+  configuredBaseUrl = normalizeBaseUrl(value);
+  return configuredBaseUrl;
+}
+
+function getApiBaseUrl() {
+  try {
+    if (typeof wx !== 'undefined' && typeof wx.getExtConfigSync === 'function') {
+      const extConfig = wx.getExtConfigSync() || {};
+      if (extConfig.apiBaseUrl) return normalizeBaseUrl(extConfig.apiBaseUrl);
+    }
+  } catch (_) { /* Ignore unavailable or malformed optional extension config. */ }
+  if (configuredBaseUrl) return configuredBaseUrl;
+  try {
+    if (typeof wx !== 'undefined' && typeof wx.getAccountInfoSync === 'function') {
+      const account = wx.getAccountInfoSync() || {};
+      const envVersion = account.miniProgram && account.miniProgram.envVersion;
+      if (envVersion === 'trial' || envVersion === 'release') return PRODUCTION_API_BASE_URL;
+    }
+  } catch (_) { /* Use the local-development URL when environment metadata is unavailable. */ }
+  return DEFAULT_API_BASE_URL;
+}
+
+function resetApiBaseUrl() {
+  configuredBaseUrl = '';
+}
+
+module.exports = { DEFAULT_API_BASE_URL, PRODUCTION_API_BASE_URL, getApiBaseUrl, setApiBaseUrl, resetApiBaseUrl };

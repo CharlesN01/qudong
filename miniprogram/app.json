@@ -1,0 +1,36 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/favorites/index",
+    "pages/orders/index",
+    "pages/application/index",
+    "pages/mine/index",
+    "pages/resources/index",
+    "pages/wrong/index",
+    "pages/bank/index",
+    "pages/bank-question/index",
+    "pages/bank-list/index",
+    "pages/knowledge/index",
+    "pages/knowledge-detail/index",
+    "pages/mock/index",
+    "pages/mock-paper/index",
+    "pages/dictation/index",
+    "pages/cert/index",
+    "pages/cert-recite/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#F7F8F5",
+    "backgroundTextStyle": "dark"
+  },
+  "usingComponents": {
+    "study-navbar": "/components/study-navbar/index",
+    "empty-state": "/components/empty-state/index",
+    "study-icon": "/components/study-icon/index",
+    "membership-gate": "/components/membership-gate/index",
+    "safe-top": "/components/safe-top/index"
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "resizable": true
+}

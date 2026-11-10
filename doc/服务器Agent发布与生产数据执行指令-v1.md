@@ -1,0 +1,248 @@
+# 服务器 Agent 发布与生产数据执行指令
+
+目标服务器：`152.136.62.224`
+服务目录：`/srv/chinese-study`
+运行服务：`chinese-study.service`
+公网域名：`https://zsbzy.com`
+
+本指令使用开发机当前工作树重新生成的 `wxz.tar.gz` 发布包。仓库来源固定为 `https://github.com/INHaiLing/wxz-.git`，分支固定为 `codex/restore-prototype-16`；若使用压缩包，必须以开发机同目录的 `wxz.tar.gz.sha256` 为唯一校验依据。包外 SHA-256 文件必须一起上传；任何校验失败都停止，不覆盖当前 release。命令不会打印环境密钥，也不执行支付开关开启。
+
+## 一、开发机准备和上传
+
+开发机当前文件：
+
+```text
+C:\Users\24429\.codex\worktrees\backend-phase-05\wx专升本语文学习小程序\wxz.tar.gz
+C:\Users\24429\.codex\worktrees\backend-phase-05\wx专升本语文学习小程序\wxz.tar.gz.sha256
+```
+
+上传前必须在开发机执行 `git fetch origin`，确认 `HEAD` 与 `origin/codex/restore-prototype-16` 一致，再用 `git archive HEAD` 生成包；交付消息同时记录 `git rev-parse HEAD`、包大小和旁置 SHA。不要使用目录中的 `wxz-before-*`、旧提交包或其他工作树包。
+
+上传时使用服务器 Agent 已经配置好的 SSH 私钥；聊天中提供的公钥不能代替客户端私钥。以下命令中的 `SERVER_KEY` 只在服务器 Agent 自己的终端替换，不要把私钥内容写进项目：
+
+```powershell
+$pkg = 'C:\Users\24429\.codex\worktrees\backend-phase-05\wx专升本语文学习小程序\wxz.tar.gz'
+$sum = 'C:\Users\24429\.codex\worktrees\backend-phase-05\wx专升本语文学习小程序\wxz.tar.gz.sha256'
+$key = 'SERVER_KEY'
+scp -i $key $pkg $sum root@152.136.62.224:/tmp/
+```
+
+## 二、服务器只读核查
+
+先上传本指令第一节中的包和 SHA 文件，再确认服务和数据库状态，不改配置、不重启。发布包已经包含只读核查脚本，因此不依赖服务器访问 GitHub：
+
+```bash
+set -Eeuo pipefail
+cd /tmp
+sha256sum -c wxz.tar.gz.sha256
+tar -xOzf /tmp/wxz.tar.gz backend/deploy/check_server_state.sh \
+  > /tmp/check_server_state.sh
+chmod 700 /tmp/check_server_state.sh
+bash /tmp/check_server_state.sh
+```
+
+只有在包尚未上传、且服务器能够访问 GitHub 时，才可使用仓库分支中的脚本作为临时核查来源；不能因为 GitHub 拉取失败而跳过核查。
+
+输出只应包含版本、监听、DNS、环境键 `SET/MISSING`、开关、健康接口、公开 smoke、数据库类型/版本和脱敏数量。若失败原因为服务/配置异常，先修复并复核；若只因生产内容为空，则先完成下节备份，再按第六节导入正式数据。任何情况下都不能用 `seed_demo` 填充生产。
+
+## 三、备份生产 PostgreSQL
+
+备份先于任何迁移、商品初始化或题库导入。备份目录只允许 root/服务账号访问，文件名不要上传 Git 或 Web 目录：
+
+```bash
+set -Eeuo pipefail
+BASE=/srv/chinese-study
+ENV=/etc/chinese-study/backend.env
+BACKUP_DIR=/var/lib/chinese-study/backups
+STAMP=$(date +%Y%m%d%H%M%S)
+mkdir -p "$BACKUP_DIR"
+chmod 700 "$BACKUP_DIR"
+umask 077
+systemd-run --quiet --wait --pipe --collect \
+  --property="EnvironmentFile=$ENV" \
+  /bin/sh -c '
+  set -eu
+  export PGPASSWORD="$DB_PASSWORD"
+  pg_dump --format=custom --file="$1" \
+    --host="${DB_HOST:-127.0.0.1}" --port="${DB_PORT:-5432}" \
+    --username="$DB_USER" "$DB_NAME"
+' sh "$BACKUP_DIR/chinese-study-$STAMP.dump"
+test -s "$BACKUP_DIR/chinese-study-$STAMP.dump"
+sha256sum "$BACKUP_DIR/chinese-study-$STAMP.dump"
+pg_restore --list "$BACKUP_DIR/chinese-study-$STAMP.dump" > "$BACKUP_DIR/chinese-study-$STAMP.list"
+test -s "$BACKUP_DIR/chinese-study-$STAMP.list"
+chmod 600 "$BACKUP_DIR/chinese-study-$STAMP.list"
+echo "备份目录清单已生成；必须将该 dump 恢复到隔离数据库后再进行生产写入。"
+```
+
+在同一 PostgreSQL 集群创建一次性隔离数据库（名称必须带本次时间戳），恢复并运行最小核验；禁止把生产数据库名作为 `--dbname`：
+
+```bash
+RESTORE_DB="chinese_study_restore_$STAMP"
+systemd-run --quiet --wait --pipe --collect \
+  --property="EnvironmentFile=$ENV" \
+  /bin/sh -c '
+  set -eu
+  export PGPASSWORD="$DB_PASSWORD"
+  cleanup() {
+    dropdb --if-exists --host="${DB_HOST:-127.0.0.1}" --port="${DB_PORT:-5432}" --username="$DB_USER" "$1" >/dev/null 2>&1 || true
+  }
+  trap "cleanup \$1" EXIT
+  createdb --template=template0 --host="${DB_HOST:-127.0.0.1}" --port="${DB_PORT:-5432}" --username="$DB_USER" "$1"
+  pg_restore --exit-on-error --single-transaction \
+    --host="${DB_HOST:-127.0.0.1}" --port="${DB_PORT:-5432}" --username="$DB_USER" \
+    --dbname="$1" "$2"
+  psql --host="${DB_HOST:-127.0.0.1}" --port="${DB_PORT:-5432}" --username="$DB_USER" \
+    --dbname="$1" --command="SELECT count(*) FROM information_schema.tables WHERE table_schema = '\''public'\'';"
+' sh "$RESTORE_DB" "$BACKUP_DIR/chinese-study-$STAMP.dump"
+```
+
+若隔离恢复失败，停止后续迁移、商品初始化和题库导入。恢复验证必须使用与生产兼容的 PostgreSQL 客户端，并记录数据库名、退出码和表/行数核验结果，不上传 dump。
+
+## 四、部署新 release
+
+只有 `/tmp/wxz.tar.gz` 的 SHA 与包外文件一致时才继续。`current` 是软链接时保留旧目标，不在旧目录执行 `git pull`：
+
+```bash
+set -Eeuo pipefail
+BASE=/srv/chinese-study
+STAMP=$(date +%Y%m%d%H%M%S)
+RELEASE="$BASE/releases/wxz-$STAMP"
+mkdir -p "$RELEASE"
+printf '%s\n' "$RELEASE" > /tmp/wxz-release-path
+chmod 600 /tmp/wxz-release-path
+cd /tmp
+sha256sum -c wxz.tar.gz.sha256
+tar -xzf wxz.tar.gz -C "$RELEASE"
+test -f "$RELEASE/backend/manage.py"
+chown -R root:chinese-study "$RELEASE"
+chmod -R u=rwX,g=rX,o= "$RELEASE"
+```
+
+先在 release 目录执行生产检查和迁移计划。后续命令从权限为 600 的临时文件读取本次 release 路径，避免误选其他 release。
+
+```bash
+BASE=/srv/chinese-study
+RELEASE=$(< /tmp/wxz-release-path)
+case "$RELEASE" in "$BASE"/releases/wxz-*) ;; *) echo 'invalid release path'; exit 2 ;; esac
+test -f "$RELEASE/backend/manage.py"
+cd "$RELEASE/backend"
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py check --deploy --fail-level WARNING
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py migrate --plan
+```
+
+确认迁移计划无异常后，再执行迁移、静态文件和角色初始化。继续使用同一 `RELEASE` 目录：
+
+```bash
+BASE=/srv/chinese-study
+RELEASE=$(< /tmp/wxz-release-path)
+case "$RELEASE" in "$BASE"/releases/wxz-*) ;; *) echo 'invalid release path'; exit 2 ;; esac
+test -f "$RELEASE/backend/manage.py"
+cd "$RELEASE/backend"
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py migrate
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py collectstatic --noinput
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py setup_roles
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py setup_business_roles
+systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE/backend" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python manage.py seed_product
+```
+
+`seed_product` 只创建缺少的 `all-chinese` 商品；随后必须在 Django 后台确认：金额 10 分、启用、平台商品编号 `VIP`、平台同步状态为已同步。该命令不导入题库，不设置支付开关。
+
+## 五、切换和回退
+
+候选 release 的代码检查和迁移计划必须在候选目录执行；此时公网仍指向旧 `current`，不能把提前访问公网的结果当作候选版本验收。完成备份、兼容迁移和正式数据导入后再切换，切换后立即运行健康检查和公开 API smoke；任一必需检查失败都按下一段回退：
+
+```bash
+BASE=/srv/chinese-study
+RELEASE=$(< /tmp/wxz-release-path)
+case "$RELEASE" in "$BASE"/releases/wxz-*) ;; *) echo 'invalid release path'; exit 2 ;; esac
+test -f "$RELEASE/backend/manage.py"
+cd "$RELEASE"
+```
+
+只有迁移、健康检查、商品/题库数据和服务状态均符合计划时才切换：
+
+```bash
+BASE=/srv/chinese-study
+RELEASE=$(< /tmp/wxz-release-path)
+case "$RELEASE" in "$BASE"/releases/wxz-*) ;; *) echo 'invalid release path'; exit 2 ;; esac
+test -f "$RELEASE/backend/manage.py"
+OLD_RELEASE=$(readlink -f "$BASE/current")
+test -d "$OLD_RELEASE"
+ln -sfn "$RELEASE" "$BASE/current.next"
+mv -Tf "$BASE/current.next" "$BASE/current"
+systemctl restart chinese-study
+if ! systemctl is-active --quiet chinese-study || ! curl --fail --silent --show-error https://zsbzy.com/healthz; then
+  ln -sfn "$OLD_RELEASE" "$BASE/current.rollback"
+  mv -Tf "$BASE/current.rollback" "$BASE/current"
+  systemctl restart chinese-study
+  systemctl is-active --quiet chinese-study
+  curl --fail --silent --show-error https://zsbzy.com/healthz
+  exit 1
+fi
+if ! systemd-run --quiet --wait --pipe --collect \
+  --property='EnvironmentFile=/etc/chinese-study/backend.env' \
+  --property="WorkingDirectory=$RELEASE" \
+  --setenv=DJANGO_SETTINGS_MODULE=config.production_settings \
+  /srv/chinese-study/venv/bin/python backend/scripts/check_public_api.py --base-url https://zsbzy.com; then
+  ln -sfn "$OLD_RELEASE" "$BASE/current.rollback"
+  mv -Tf "$BASE/current.rollback" "$BASE/current"
+  systemctl restart chinese-study
+  systemctl is-active --quiet chinese-study
+  curl --fail --silent --show-error https://zsbzy.com/healthz
+  exit 1
+fi
+```
+
+如果新 release 启动或 smoke 失败，立即切回切换前保存的旧软链接目标，重启并验证 `/healthz`。代码回退不回退数据库；所有迁移必须向后兼容（expand/contract）。无法向后兼容的迁移不得按本指令直接发布，必须另行安排维护窗口、数据库恢复或前向修复，并先在隔离恢复库演练。不要删除旧 release 或备份。
+
+## 六、正式题库和业务数据
+
+1. 先备份数据库，再在 Django 后台预检正式 XLSX。
+2. 确认导入后人工审核草稿，逐批发布分类、文言篇目和题目。
+3. 导入并发布至少一个应用文分类和详情。
+4. 资料群只有拿到正式二维码、微信号和口令后才启用；缺素材保持空态。
+5. 禁止在生产运行 `seed_demo` 或复制本机 QA 数据库。
+6. 重跑 `check_public_api.py`，直到分类、篇目、文学题、文言题、应用文和 `all-chinese` 商品均非空；资料群关闭只能作为明确登记的非阻塞警告。
+
+## 七、回调和支付边界
+
+兼容模式回调 GET 必须使用微信后台当前 Token 计算签名并回显 `echostr`。本机 Token 对公网返回过 400，服务器 Agent 必须用 `/etc/chinese-study/backend.env` 的 Token 重新验证；不要把 Token 放入命令历史或报告。
+
+在 Android 沙箱的创建订单、支付、平台通知、查单、发权和退款/对账全部通过前，保持：
+
+```text
+VIRTUAL_PAYMENT_ENABLED=false
+VIRTUAL_PAYMENT_ANDROID_ENABLED=false
+VIRTUAL_PAYMENT_IOS_ENABLED=false
+```
+
+不得用客户端支付成功回调直接发放权益。支付开关、正式支付和 iOS 价格调整不属于本次服务器数据准备步骤。

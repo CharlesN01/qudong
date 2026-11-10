@@ -1,0 +1,105 @@
+<view class="page">
+  <safe-top />
+
+  <view class="top">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
+    <text class="top-title">各科备考知识点</text>
+    <view class="top-space"></view>
+  </view>
+
+  <view class="search">
+    <text class="search-mark">⌕</text>
+    <input
+      class="search-input"
+      type="text"
+      value="{{keyword}}"
+      placeholder="搜索科目或知识点"
+      placeholder-class="search-placeholder"
+      confirm-type="search"
+      bindinput="onSearchInput"
+    />
+    <text wx:if="{{keyword}}" class="search-clear" bindtap="clearSearch">×</text>
+  </view>
+
+  <scroll-view wx:if="{{searching}}" class="search-results" scroll-y>
+    <view wx:if="{{searchResults.length === 0}}" class="empty">
+      <text class="empty-title">没有找到相关知识点</text>
+      <text class="empty-hint">换个关键词试试，比如「极限」「文言文」</text>
+    </view>
+    <view
+      wx:for="{{searchResults}}"
+      wx:key="bookId"
+      class="result-row"
+      data-subject="{{item.subjectId}}"
+      data-id="{{item.bookId}}"
+      bindtap="openSearchResult"
+      hover-class="tap-dim"
+    >
+      <view class="result-copy">
+        <text class="result-book">{{item.bookName}}</text>
+        <text class="result-meta">{{item.subjectName}} · {{item.count}} 条</text>
+      </view>
+      <text class="result-arrow">›</text>
+    </view>
+  </scroll-view>
+
+  <view wx:else class="library">
+    <scroll-view class="subjects" scroll-y>
+      <view
+        wx:for="{{subjectList}}"
+        wx:key="id"
+        class="subject-item {{activeSubject === item.id ? 'subject-active' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="switchSubject"
+        hover-class="tap-dim"
+      >{{item.name}}</view>
+    </scroll-view>
+
+    <scroll-view class="catalog" scroll-y>
+      <text class="panel-title">{{activeName}}</text>
+
+      <view wx:if="{{isFavoritePanel}}" class="favorite-panel">
+        <view wx:if="{{favoriteGroups.length === 0}}" class="empty">
+          <text class="empty-title">还没有收藏知识点</text>
+          <text class="empty-hint">在背诵页点「收藏」，就会出现在这里</text>
+        </view>
+        <view
+          wx:for="{{favoriteGroups}}"
+          wx:key="bookId"
+          class="favorite-row"
+          data-subject="{{item.subjectId}}"
+          data-id="{{item.bookId}}"
+          bindtap="openFavoriteBook"
+          hover-class="tap-dim"
+        >
+          <view class="favorite-copy">
+            <text class="favorite-name">{{item.bookName}}</text>
+            <text class="favorite-meta">{{item.subjectName}} · 已收藏 {{item.count}} 条</text>
+          </view>
+          <text class="favorite-arrow">›</text>
+        </view>
+      </view>
+
+      <view wx:else class="books">
+        <view
+          wx:for="{{books}}"
+          wx:key="id"
+          class="book"
+          data-id="{{item.id}}"
+          bindtap="openBook"
+          hover-class="tap-shrink"
+        >
+          <view class="cover">
+            <text class="cover-publisher">{{item.cover.publisher}}</text>
+            <view class="cover-strong">
+              <text class="cover-line">{{item.cover.line1}}</text>
+              <text class="cover-line">{{item.cover.line2}}</text>
+            </view>
+            <text class="cover-small">{{item.cover.small}}</text>
+          </view>
+          <text class="book-name">{{item.name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

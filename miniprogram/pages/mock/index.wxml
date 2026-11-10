@@ -1,0 +1,122 @@
+<view class="page">
+  <view class="status-pad" style="height: {{statusHeight}}px;"></view>
+
+  <view class="nav-row" style="height: {{navBarHeight}}px;">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
+    <text class="nav-title">机构模考</text>
+  </view>
+
+  <view class="main">
+    <view class="intro">
+      <text class="intro-kicker">山东专升本 · 模考练习</text>
+      <view class="intro-line">
+        <text class="intro-title">各机构模考</text>
+        <text class="intro-mark">按轮次选卷</text>
+      </view>
+    </view>
+
+    <view class="filters">
+      <view class="filter-row">
+        <view class="row-heading">
+          <text class="filter-label">考试轮次</text>
+          <text class="row-hint">选择场次</text>
+        </view>
+        <view class="chips round-chips">
+          <view
+            wx:for="{{rounds}}"
+            wx:key="*this"
+            class="chip {{round === item ? 'chip-on' : ''}}"
+            data-value="{{item}}"
+            bindtap="pickRound"
+            hover-class="chip-pressed"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <view class="filter-row">
+        <view class="row-heading"><text class="filter-label">科目</text></view>
+        <view class="chips">
+          <view
+            wx:for="{{subjects}}"
+            wx:key="name"
+            class="chip {{subject === item.name ? 'chip-on' : ''}}"
+            data-value="{{item.name}}"
+            bindtap="pickSubject"
+            hover-class="chip-pressed"
+          >{{item.name}}</view>
+        </view>
+      </view>
+
+      <view class="filter-row">
+        <view class="row-heading"><text class="filter-label">考试机构</text></view>
+        <view class="chips">
+          <view
+            wx:for="{{agencies}}"
+            wx:key="name"
+            class="chip {{agency === item.name ? 'chip-on' : ''}}"
+            data-value="{{item.name}}"
+            bindtap="pickAgency"
+            hover-class="chip-pressed"
+          >{{item.name}}</view>
+        </view>
+      </view>
+
+      <view class="filter-bottom">
+        <view class="reset" bindtap="resetFilter" hover-class="tap-dim">重置筛选</view>
+      </view>
+    </view>
+
+    <view class="result-head">
+      <view class="result-copy">
+        <text class="result-title">模考试卷</text>
+        <text class="result-caption">选择试卷开始练习</text>
+      </view>
+      <text class="result-count">{{resultCount}} 套</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="state">
+      <text class="state-text">正在加载试卷…</text>
+    </view>
+
+    <view wx:elif="{{failed}}" class="state">
+      <text class="state-title">试卷暂时加载不出来</text>
+      <text class="state-text">请确认题库服务已启动后重试</text>
+      <view class="state-btn" bindtap="retry" hover-class="tap-dim">重新加载</view>
+    </view>
+
+    <view wx:elif="{{groups.length === 0}}" class="state">
+      <text class="state-title">没有符合条件的试卷</text>
+      <text class="state-text">换个筛选条件试试</text>
+    </view>
+
+    <block wx:else>
+      <view wx:for="{{groups}}" wx:key="agencyName" class="group">
+        <view class="group-head">
+          <text class="group-name">{{item.agencyName}}</text>
+          <text class="group-count">{{item.exams.length}} 套试卷</text>
+        </view>
+
+        <view wx:for="{{item.exams}}" wx:for-item="exam" wx:key="id" class="exam">
+          <view class="exam-head">
+            <text class="exam-title">{{exam.name}}</text>
+            <text class="exam-type">机构模考</text>
+          </view>
+
+          <view class="tags">
+            <text class="tag">{{exam.subjectName}}</text>
+            <text class="tag">{{exam.round}}</text>
+            <text class="tag {{exam.statusClass}}">{{exam.status}}</text>
+          </view>
+
+          <view class="exam-bottom">
+            <text class="exam-meta">{{exam.count}} 题</text>
+            <view class="actions {{exam.hasProgress ? 'actions-resume' : ''}}">
+              <view wx:if="{{exam.hasProgress}}" class="action-btn" data-id="{{exam.id}}" data-resume="1" bindtap="startExam" hover-class="tap-dim">继续作答</view>
+              <view class="action-btn action-primary" data-id="{{exam.id}}" data-resume="0" bindtap="startExam" hover-class="tap-dim">开始模考</view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+</view>

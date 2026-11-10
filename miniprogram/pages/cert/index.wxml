@@ -1,0 +1,82 @@
+<view class="page">
+  <safe-top />
+
+  <view class="top">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
+    <text class="top-title">资格证书</text>
+    <view class="top-space"></view>
+  </view>
+
+  <view class="main">
+    <view class="certs">
+      <view
+        wx:for="{{certs}}"
+        wx:key="id"
+        class="cert {{activeId === item.id ? 'cert-on' : ''}}"
+        data-id="{{item.id}}"
+        bindtap="pickCert"
+        hover-class="tap-dim"
+      >
+        <text class="cert-name">{{item.name}}</text>
+        <text wx:if="{{item.tag}}" class="cert-tag">{{item.tag}}</text>
+      </view>
+    </view>
+
+    <view class="hero">
+      <view class="hero-cover">
+        <text class="hero-publisher">资格证书</text>
+        <view class="hero-strong">
+          <text class="hero-line">{{active.name}}</text>
+          <text class="hero-line">备考题库</text>
+        </view>
+        <text class="hero-small">助力高效提分</text>
+      </view>
+      <view class="hero-copy">
+        <text class="hero-eyebrow">CERTIFICATE</text>
+        <text class="hero-title">{{active.name}}</text>
+        <text class="hero-subject">{{active.subject}}</text>
+        <text class="hero-status">题库整理中</text>
+      </view>
+    </view>
+
+    <view class="recall" bindtap="openRecite" hover-class="tap-dim">
+      <view class="recall-icon">书</view>
+      <view class="recall-copy">
+        <text class="recall-title">知识点背诵</text>
+        <text class="recall-sub">按科目回忆重点，展开答案逐条复习</text>
+      </view>
+      <text class="recall-arrow">›</text>
+    </view>
+
+    <view class="section-head">
+      <text class="section-title">题型练习</text>
+      <text class="section-caption">选择题型开始练习</text>
+    </view>
+
+    <view class="types">
+      <view
+        wx:for="{{types}}"
+        wx:key="id"
+        class="type-card"
+        data-name="{{item.name}}"
+        bindtap="startType"
+        hover-class="tap-dim"
+      >
+        <view class="type-head">
+          <text class="type-name">{{item.name}}</text>
+          <text class="type-badge">待上线</text>
+        </view>
+        <text class="type-desc">{{item.desc}}</text>
+        <view class="type-meta">
+          <text class="type-count">题量待更新</text>
+          <text class="type-rate">正确率 --</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="notice">
+      <text class="notice-title">这个板块还在整理</text>
+      <text class="notice-text">教师资格、普通话、计算机等级、会计的题库内容还没到位，先把页面结构留好，内容到位后直接填进来就能用。</text>
+    </view>
+  </view>
+</view>

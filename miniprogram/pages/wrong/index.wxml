@@ -1,0 +1,64 @@
+<view class="wrong-page theme-{{theme}}">
+  <study-navbar title="我的错题本" subtitle="" theme="paper" back="{{false}}" />
+
+  <view class="wrong-body">
+    <view class="wrong-summary">
+      <text class="summary-title">我的错题本</text>
+      <text class="summary-sub">共 {{total}} 道待掌握</text>
+    </view>
+
+    <view wx:if="{{!isLogin}}" class="wrong-tip" role="button" bindtap="goLogin">登录后可同步错题，点此登录</view>
+    <view wx:if="{{loading}}" class="wrong-hint">加载中...</view>
+    <view wx:if="{{error}}" class="wrong-hint wrong-hint-error">{{error}}</view>
+    <view wx:if="{{isLogin && !loading && !error && !list.length}}" class="wrong-empty">还没有错题，继续保持</view>
+
+    <view wx:if="{{subjects.length}}" class="filter-row">
+      <view class="filter-chip {{activeSubject === '' ? 'filter-chip-on' : ''}}" data-id="" bindtap="filterSubject">全部</view>
+      <view wx:for="{{subjects}}" wx:key="id" class="filter-chip {{activeSubject === item.id ? 'filter-chip-on' : ''}}" data-id="{{item.id}}" bindtap="filterSubject">{{item.name}} {{item.count}}</view>
+    </view>
+
+    <view class="wrong-list">
+      <view wx:for="{{list}}" wx:key="id" class="wrong-item">
+        <view class="item-top">
+          <text class="tag">{{item.subjectName}}</text>
+          <text class="tag tag-type">{{item.typeName}}</text>
+          <text class="wrong-count">错 {{item.wrongCount}} 次</text>
+        </view>
+        <text class="stem" data-index="{{index}}" bindtap="openDetail">{{item.stemText}}</text>
+        <view class="item-foot">
+          <text class="time">{{item.lastAt}}</text>
+          <view class="actions">
+            <view class="btn-ghost" data-id="{{item.id}}" bindtap="master">标记掌握</view>
+            <view class="btn-solid" data-index="{{index}}" bindtap="openDetail">重做</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{detailVisible}}" class="wrong-modal" catchtap="closeDetail">
+    <view class="wrong-modal-card" catchtap="noop">
+      <view class="wrong-modal-close" role="button" catchtap="closeDetail">×</view>
+      <text class="wrong-modal-kicker">{{detailItem.subjectName}} · 错 {{detailItem.wrongCount}} 次</text>
+      <view class="wrong-modal-stem">
+        <block wx:for="{{detailItem.stemParts}}" wx:key="index">
+          <text wx:if="{{item.kind === 'text'}}">{{item.text}}</text>
+          <image wx:else class="detail-image" src="{{item.url}}" mode="widthFix" data-src="{{item.url}}" bindtap="previewImage" />
+        </block>
+      </view>
+      <view class="wrong-options">
+        <view wx:for="{{detailItem.optionList}}" wx:key="key" class="wrong-option {{item.right ? 'wrong-option-right' : ''}}">
+          <text class="option-key">{{item.key}}</text><text class="option-text">{{item.text}}</text>
+        </view>
+      </view>
+      <view class="wrong-answer"><text>正确答案：{{detailItem.answerText}}</text></view>
+    </view>
+  </view>
+
+  <view class="bottom-nav study-bottom-navigation">
+    <view class="bottom-nav-item study-bottom-navigation-item" bindtap="openHome" role="button"><text class="bottom-nav-icon study-bottom-navigation-icon">⌂</text><text class="study-bottom-navigation-label">首页</text></view>
+    <view class="bottom-nav-item study-bottom-navigation-item" bindtap="openFavorites" role="button"><text class="bottom-nav-icon study-bottom-navigation-icon">☆</text><text class="study-bottom-navigation-label">收藏</text></view>
+    <view class="bottom-nav-item study-bottom-navigation-item bottom-nav-active" role="button"><text class="bottom-nav-icon study-bottom-navigation-icon">▤</text><text class="study-bottom-navigation-label">错题</text></view>
+    <view class="bottom-nav-item study-bottom-navigation-item" bindtap="openProfile" role="button"><text class="bottom-nav-icon study-bottom-navigation-icon">◎</text><text class="study-bottom-navigation-label">我的</text></view>
+  </view>
+</view>

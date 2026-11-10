@@ -1,0 +1,53 @@
+<view class="page">
+  <safe-top />
+
+  <view class="top">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
+    <text class="top-title">知识点背诵</text>
+    <view class="top-action {{favorited ? 'top-action-on' : ''}}" bindtap="toggleFavorite" hover-class="tap-dim">
+      {{favorited ? '已收藏' : '收藏'}}
+    </view>
+  </view>
+
+  <view class="main">
+    <view class="bookline">
+      <text class="bookline-name">{{bookName}}</text>
+      <text class="bookline-count">{{index + 1}} / {{total}}</text>
+    </view>
+
+    <view wx:if="{{current}}" class="card">
+      <view class="card-top">
+        <text class="badge">{{current.topic}}</text>
+        <text class="answer-toggle" bindtap="toggleAnswer">{{showAnswer ? '隐藏答案' : '显示答案'}}</text>
+      </view>
+
+      <text class="prompt">背诵要点</text>
+      <text class="question">{{current.q}}</text>
+
+      <view wx:if="{{showAnswer}}" class="answer">
+        <text class="answer-title">参考要点</text>
+        <text class="answer-text">{{current.a}}</text>
+        <view class="keys">
+          <text wx:for="{{current.keys}}" wx:key="*this" class="key">{{item}}</text>
+        </view>
+      </view>
+      <view wx:else class="answer-hidden" bindtap="toggleAnswer">
+        <text class="answer-hidden-text">点击查看答案</text>
+      </view>
+
+      <view class="nav">
+        <view class="nav-btn {{index <= 0 ? 'nav-btn-off' : ''}}" bindtap="previous" hover-class="tap-dim">上一页</view>
+        <view class="nav-btn {{index >= total - 1 ? 'nav-btn-off' : ''}}" bindtap="next" hover-class="tap-dim">下一页</view>
+      </view>
+    </view>
+
+    <view class="bottom-tools">
+      <picker mode="selector" range="{{pageLabels}}" value="{{pageIndex}}" bindchange="onPagePick">
+        <view class="page-select">
+          <text>第 {{index + 1}} 页 / 共 {{total}} 页</text>
+          <text class="page-select-arrow">▾</text>
+        </view>
+      </picker>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,238 @@
+/* 机构模考列表：对齐「各机构模考-淡紫色版.html」最终样式（设计宽 480px，按 750/480≈1.5625 换算并整体放大一档） */
+
+page { background: #F3F7FB; }
+
+.status-pad { width: 100%; background: #FFFFFF; }
+
+.page {
+  min-height: 100vh;
+  background: #F3F7FB;
+  color: #24364D;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  padding-bottom: 40rpx;
+}
+
+/* ---------- 顶栏 ---------- */
+.nav-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 24rpx;
+  background: #FFFFFF;
+}
+.back { flex: 0 0 auto; color: #5478A8; font-size: 24rpx; }
+.nav-title {
+  position: absolute;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #243D5E;
+  font-size: 30rpx;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+/* ---------- 内容 ---------- */
+.main { padding: 26rpx 24rpx 0; }
+
+.intro {
+  position: relative;
+  overflow: hidden;
+  margin: 2rpx 0 18rpx;
+  padding: 18rpx 24rpx 20rpx;
+  border: 2rpx solid #D2E3F7;
+  border-radius: 20rpx;
+  background: #E8F2FF;
+}
+.intro-kicker { display: block; color: #6C85A6; font-size: 21rpx; }
+.intro-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin-top: 4rpx;
+}
+.intro-title { color: #243D5E; font-size: 38rpx; font-weight: 750; line-height: 1.35; }
+.intro-mark {
+  flex: 0 0 auto;
+  padding: 6rpx 12rpx;
+  border-radius: 10rpx;
+  background: #E0EFFD;
+  color: #3D6EA8;
+  font-size: 20rpx;
+}
+
+/* ---------- 筛选卡 ---------- */
+.filters {
+  margin-top: 0;
+  padding: 18rpx 18rpx 16rpx;
+  border: 2rpx solid #D9E4F3;
+  border-radius: 20rpx;
+  background: #FFFFFF;
+}
+.filter-row + .filter-row { margin-top: 0; padding-top: 12rpx; border-top: 2rpx solid #EDF2F8; }
+.filter-row { display: block; min-width: 0; }
+.row-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6rpx; }
+.filter-label { color: #48627F; font-size: 23rpx; font-weight: 650; }
+.row-hint { color: #71859D; font-size: 20rpx; }
+
+.chips { min-width: 0; display: flex; flex-wrap: wrap; gap: 8rpx; margin-top: 0; }
+.round-chips { flex-wrap: nowrap; overflow-x: auto; white-space: nowrap; }
+.chip {
+  min-height: 48rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx 14rpx;
+  border: 2rpx solid #DCE6F2;
+  border-radius: 12rpx;
+  background: #F4F7FB;
+  color: #506985;
+  font-size: 21rpx;
+  line-height: normal;
+  white-space: nowrap;
+}
+.chip-on {
+  border-color: #9FC2E9;
+  background: #E7F0FF;
+  color: #1766C2;
+  font-weight: 700;
+}
+.chip-pressed { opacity: .72; }
+
+.filter-bottom { display: flex; justify-content: flex-end; margin-top: 8rpx; }
+.reset {
+  min-height: 48rpx;
+  display: inline-flex;
+  align-items: center;
+  padding: 6rpx 14rpx;
+  border: 2rpx solid #DCE6F2;
+  border-radius: 10rpx;
+  background: #FFFFFF;
+  color: #607894;
+  font-size: 21rpx;
+  line-height: normal;
+}
+
+/* ---------- 结果头 ---------- */
+.result-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 20rpx 4rpx 16rpx;
+}
+.result-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 2rpx; }
+.result-title { color: #405B7A; font-size: 30rpx; font-weight: 700; }
+.result-caption { color: #8190A3; font-size: 20rpx; }
+.result-count {
+  padding: 8rpx 14rpx;
+  border-radius: 12rpx;
+  background: #E7F0FF;
+  color: #8190A3;
+  font-size: 21rpx;
+}
+
+/* ---------- 分组与卡片 ---------- */
+.group + .group { margin-top: 18rpx; }
+.group-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8rpx 0 12rpx 2rpx;
+  padding: 6rpx 6rpx 6rpx 14rpx;
+  border-left: 4rpx solid #D8C9EF;
+}
+.group-name { color: #496B94; font-size: 24rpx; font-weight: 700; }
+.group-count { color: #9AAABD; font-size: 20rpx; }
+
+.exam {
+  position: relative;
+  margin-bottom: 16rpx;
+  padding: 28rpx 26rpx 24rpx 28rpx;
+  border: 2rpx solid #DFE8F2;
+  border-radius: 20rpx;
+  background: #FFFFFF;
+  overflow: hidden;
+}
+.exam::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 16rpx;
+  bottom: 16rpx;
+  width: 6rpx;
+  border-radius: 0 6rpx 6rpx 0;
+  background: #B7CCDF;
+}
+.exam-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14rpx; }
+.exam-title { flex: 1; min-width: 0; color: #243D5E; font-size: 28rpx; font-weight: 650; line-height: 1.45; }
+.exam-type {
+  flex: 0 0 auto;
+  padding: 7rpx 12rpx;
+  border-radius: 10rpx;
+  background: #EDF3F8;
+  color: #607B95;
+  font-size: 19rpx;
+  line-height: normal;
+}
+
+.tags { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 18rpx; }
+.tag {
+  padding: 8rpx 14rpx;
+  border-radius: 10rpx;
+  background: #EDF3F8;
+  color: #607B95;
+  font-size: 19rpx;
+  line-height: normal;
+}
+.status-done { background: #E6F7F0; color: #17866A; }
+.status-progress { background: #FFF3DC; color: #AE7A2D; }
+.exam-bottom { display: flex; align-items: center; justify-content: space-between; gap: 14rpx; margin-top: 22rpx; }
+.exam-meta { display: block; flex: 1; min-width: 0; color: #8493A5; font-size: 21rpx; }
+
+.actions { flex: 0 0 44%; display: grid; grid-template-columns: 1fr; gap: 10rpx; }
+.actions-resume { flex-basis: 64%; grid-template-columns: 1fr 1fr; }
+.action-btn {
+  min-height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #DFE7EF;
+  border-radius: 16rpx;
+  background: #FFFFFF;
+  color: #60768C;
+  font-size: 24rpx;
+  font-weight: 600;
+  line-height: normal;
+}
+.action-primary {
+  border-color: #5B8FE8;
+  background: #5B8FE8;
+  color: #FFFFFF;
+  box-shadow: 0 5rpx 12rpx rgba(50, 119, 237, .16);
+}
+.tap-dim { opacity: .72; }
+
+@media (max-width: 360px) {
+  .row-heading { flex-basis: 58rpx; }
+  .filter-row { gap: 8rpx; }
+  .actions { flex-basis: 48%; }
+  .actions-resume { flex-basis: 66%; }
+}
+
+/* ---------- 状态 ---------- */
+.state { padding: 60rpx 24rpx; text-align: center; }
+.state-title { display: block; color: #405B7A; font-size: 26rpx; font-weight: 650; }
+.state-text { display: block; margin-top: 10rpx; color: #8190A3; font-size: 22rpx; line-height: 1.6; }
+.state-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 22rpx;
+  padding: 14rpx 34rpx;
+  border-radius: 14rpx;
+  background: #E1F3EC;
+  color: #258367;
+  font-size: 23rpx;
+  font-weight: 650;
+}

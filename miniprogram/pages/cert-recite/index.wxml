@@ -1,0 +1,45 @@
+<view class="page">
+  <safe-top />
+
+  <view class="top">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
+    <text class="top-title">知识点背诵</text>
+    <view class="top-space"></view>
+  </view>
+
+  <view class="main">
+    <view class="bookline">
+      <text class="bookline-name">{{certName}} · 精选</text>
+      <text class="bookline-count">{{points.length}} 条</text>
+    </view>
+
+    <view wx:if="{{isEmpty}}" class="empty">
+      <text class="empty-title">这个证书的知识点还在整理</text>
+      <text class="empty-hint">题库内容到位后，这里会按条目展示，点开即可看答案要点</text>
+      <view class="empty-btn" bindtap="goBack" hover-class="tap-dim">返回资格证书</view>
+    </view>
+
+    <view wx:else class="list">
+      <view
+        wx:for="{{points}}"
+        wx:key="index"
+        class="point"
+        data-index="{{index}}"
+        bindtap="toggle"
+        hover-class="tap-dim"
+      >
+        <view class="point-head">
+          <text class="point-topic">{{item.topic}}</text>
+          <text class="point-arrow">{{openIndex === index ? '▴' : '▾'}}</text>
+        </view>
+        <text class="point-q">{{item.q}}</text>
+        <view wx:if="{{openIndex === index}}" class="point-answer">
+          <text class="point-a">{{item.a}}</text>
+          <view class="keys">
+            <text wx:for="{{item.keys}}" wx:for-item="key" wx:key="*this" class="key">{{key}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,92 @@
+<view class="list-page">
+  <view class="status-pad" style="height: {{statusHeight}}px;"></view>
+
+  <view class="nav-row" style="height: {{navBarHeight}}px;">
+    <view class="back-pill" role="button" bindtap="backToSubject" hover-class="pill-pressed">‹ 返回</view>
+  </view>
+
+  <view class="heading">
+    <view class="heading-line">
+      <text class="heading-title">{{title}}</text>
+      <view wx:if="{{canClear}}" class="clear-btn" role="button" bindtap="clearRecords" hover-class="pill-pressed">清除记录</view>
+    </view>
+    <text class="heading-sub">共 {{total}} 道题目</text>
+  </view>
+
+  <view class="filters">
+    <view class="field">
+      <text class="field-label">科目:</text>
+      <picker class="field-control" range="{{subjects}}" range-key="name" value="{{subjectIndex}}" bindchange="onSubjectChange">
+        <view class="picker-value">{{subjectName}}</view>
+      </picker>
+    </view>
+
+    <view class="field">
+      <text class="field-label">章节:</text>
+      <picker class="field-control" range="{{chapters}}" range-key="title" value="{{chapterIndex}}" bindchange="onChapterChange">
+        <view class="picker-value">{{chapters[chapterIndex].title || '全部章节'}}</view>
+      </picker>
+    </view>
+
+    <view wx:if="{{mode === 'exam'}}" class="field">
+      <text class="field-label">试卷:</text>
+      <picker class="field-control" range="{{sources}}" range-key="title" value="{{sourceIndex}}" bindchange="onSourceChange">
+        <view class="picker-value">{{sources[sourceIndex].title || '全部试卷'}}</view>
+      </picker>
+    </view>
+    <view wx:else class="field">
+      <text class="field-label">小节:</text>
+      <picker class="field-control" range="{{sections}}" range-key="title" value="{{sectionIndex}}" bindchange="onSectionChange">
+        <view class="picker-value">{{sections[sectionIndex].title || '全部小节'}}</view>
+      </picker>
+    </view>
+
+    <view class="field field-search">
+      <input class="search-input" value="{{keyword}}" placeholder="搜索题目内容..." placeholder-class="search-holder" bindinput="onSearchInput" confirm-type="search" />
+      <text wx:if="{{keyword}}" class="search-clear" bindtap="clearSearch">×</text>
+    </view>
+  </view>
+
+  <view class="statusbar">
+    <view class="statuses">
+      <view
+        wx:for="{{states}}"
+        wx:key="id"
+        class="status {{state === item.id ? 'status-on' : ''}}"
+        data-state="{{item.id}}"
+        bindtap="pickState"
+        hover-class="pill-pressed"
+      >{{item.name}} <text class="status-count">({{item.count}})</text></view>
+    </view>
+    <view class="result-summary">共 {{filtered}} 题</view>
+  </view>
+
+  <view class="grid-panel">
+    <view class="grid-head">
+      <text class="grid-title">题号</text>
+      <text class="grid-hint">{{rangeText}}</text>
+    </view>
+
+    <view wx:if="{{items.length}}" class="question-grid">
+      <view
+        wx:for="{{items}}"
+        wx:key="id"
+        class="question {{item.wrong ? 'q-wrong' : (item.done ? 'q-done' : '')}} {{item.favorite ? 'q-fav' : ''}}"
+        data-index="{{index}}"
+        bindtap="openQuestion"
+        hover-class="q-pressed"
+      >{{item.number}}</view>
+    </view>
+
+    <view wx:else class="empty">
+      <text class="empty-strong">{{emptyText}}</text>
+      <text class="empty-sub">{{loading ? '加载中...' : '换个章节或筛选条件再看看'}}</text>
+    </view>
+
+    <view wx:if="{{totalPages > 1}}" class="pagination">
+      <view class="page-btn {{page <= 1 ? 'page-btn-off' : ''}}" bindtap="prevPage">‹</view>
+      <view class="page-btn page-btn-on">{{page}} / {{totalPages}}</view>
+      <view class="page-btn {{page >= totalPages ? 'page-btn-off' : ''}}" bindtap="nextPage">›</view>
+    </view>
+  </view>
+</view>

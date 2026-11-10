@@ -1,0 +1,196 @@
+/* 刷题页：对齐「首页上刷题页面定稿」HTML（设计宽 480px，按 750/480≈1.5625 换算成 rpx）。
+   定稿里的字号在真机 390pt 屏上偏小，这里整体放大一档，纵向间距同步放宽，避免拥挤。 */
+@import "/styles/bank-icons.wxss";
+
+page { background: #F5F9FF; }
+
+.status-pad { width: 100%; background: #F5F9FF; }
+/* 返回胶囊与微信胶囊同一行，高度取真实导航栏高度 */
+.nav-row { display: flex; align-items: center; padding: 0 26rpx; }
+
+.bank-page {
+  min-height: 100vh;
+  background: #F5F9FF;
+  color: #142F49;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  padding-bottom: 40rpx;
+}
+.bank-main { padding: 16rpx 26rpx 36rpx; }
+
+.back-pill {
+  flex: 0 0 auto;
+  padding: 11rpx 24rpx 11rpx 20rpx;
+  border: 2rpx solid #D8E5F5;
+  border-radius: 999rpx;
+  background: #FFFFFF;
+  color: #3D5F91;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: normal;
+  box-shadow: 0 4rpx 12rpx rgba(36, 90, 148, .06);
+}
+.pill-pressed { opacity: .7; }
+.intro-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18rpx;
+}
+.intro-line .subject-tag { align-self: flex-start; margin-top: 4rpx; }
+.subject-tag {
+  flex: 0 0 auto;
+  padding: 11rpx 18rpx;
+  border: 2rpx solid #C5DDEF;
+  border-radius: 999rpx;
+  background: #E7F1FF;
+  color: #247FEE;
+  font-size: 20rpx;
+  font-weight: 650;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+/* ---------- 科目头部 ---------- */
+.intro { margin: 0 0 34rpx; }
+.intro-title {
+  display: block;
+  color: #142F49;
+  font-size: 44rpx;
+  font-weight: 750;
+  line-height: 1.28;
+}
+.intro-sub { display: block; margin-top: 12rpx; color: #7D90AA; font-size: 23rpx; line-height: 1.5; }
+
+/* ---------- 我的刷题进度 ---------- */
+.stats-card {
+  position: relative;
+  overflow: hidden;
+  padding: 26rpx 26rpx 26rpx;
+  border: 2rpx solid #D9E4F3;
+  border-radius: 28rpx;
+  background: linear-gradient(135deg, #E4EFFC 0%, #F4F8FD 100%);
+  box-shadow: 0 12rpx 30rpx rgba(36, 127, 238, .10);
+}
+.stats-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26rpx; }
+.stats-label { color: #3D5F91; font-size: 22rpx; font-weight: 650; }
+.stats-more { display: flex; align-items: center; gap: 7rpx; color: #40546E; font-size: 20rpx; }
+.stats-pie { width: 26rpx; height: 26rpx; background-repeat: no-repeat; background-position: center; background-size: 26rpx 26rpx; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); text-align: center; }
+.metric + .metric { border-left: 2rpx solid #D7E4F5; }
+.metric-num { display: block; color: #1766C2; font-size: 46rpx; font-weight: 750; line-height: 1.05; }
+.metric-label { display: block; margin-top: 12rpx; color: #40546E; font-size: 20rpx; line-height: 1.2; }
+
+/* ---------- 错题本 / 收藏本 ---------- */
+.books {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18rpx;
+  margin: 24rpx 0 42rpx;
+}
+.book {
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+  min-height: 110rpx;
+  padding: 18rpx 22rpx;
+  border: 2rpx solid #CADBE9;
+  border-radius: 22rpx;
+  background: #FFFFFF;
+  color: #294760;
+  font-size: 22rpx;
+  font-weight: 650;
+  box-shadow: 0 5rpx 16rpx rgba(33, 67, 98, .07);
+}
+.book-icon {
+  flex: 0 0 56rpx;
+  width: 56rpx;
+  height: 56rpx;
+  border-radius: 16rpx;
+  background-color: #E8F2FF;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 30rpx 30rpx;
+}
+.book-icon-fav { background-color: #E0EFFD; }
+.book-label { color: #294760; font-size: 23rpx; font-weight: 650; }
+.book-pressed { opacity: .78; }
+
+/* ---------- 分区标题 ---------- */
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 2rpx 20rpx;
+}
+.section-h2 { color: #183B59; font-size: 34rpx; font-weight: 700; line-height: 1.3; }
+.section-cap { color: #40546E; font-size: 20rpx; }
+
+/* ---------- 练习专区（三张卡） ---------- */
+.modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18rpx;
+}
+.mode {
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  min-height: 256rpx;
+  padding: 28rpx 22rpx 24rpx;
+  border: 2rpx solid #CFE2F8;
+  border-radius: 24rpx;
+  background: #E0EFFD;
+  box-shadow: 0 6rpx 20rpx rgba(38, 70, 98, .075);
+  text-align: left;
+}
+.mode::after {
+  content: '';
+  position: absolute;
+  right: -36rpx;
+  bottom: -58rpx;
+  width: 132rpx;
+  height: 132rpx;
+  border-radius: 50%;
+  background: #ACD0E8;
+  opacity: .28;
+}
+.mode-quick {
+  grid-column: 1 / -1;
+  order: 1;
+  min-height: 238rpx;
+  padding: 30rpx 24rpx 24rpx;
+  border-color: #D5E4F6;
+  background: #E8F2FF;
+}
+.mode-quick::after { background: #B9A7E0; }
+.mode-chapter { order: 2; background: #E8F3F0; border-color: #C3E0D4; }
+.mode-chapter::after { background: #A9D2C0; }
+.mode-exam { order: 3; }
+
+.mode-title { display: block; position: relative; z-index: 1; font-size: 30rpx; font-weight: 700; line-height: 1.35; color: #23557D; }
+.mode-quick .mode-title { color: #4B3978; }
+.mode-chapter .mode-title { color: #205C4F; }
+.mode-desc { display: block; position: relative; z-index: 1; margin: 11rpx 0 26rpx; color: #40546E; font-size: 22rpx; line-height: 1.55; }
+.mode-bottom { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; }
+.start {
+  padding: 11rpx 18rpx;
+  border-radius: 13rpx;
+  background: #C8E2F5;
+  color: #216DA5;
+  font-size: 21rpx;
+  font-weight: 750;
+  line-height: normal;
+}
+.mode-quick .start { background: #D4C4F0; color: #6449A2; }
+.mode-chapter .start { background: #C8E4D8; color: #267662; }
+.mode-ico {
+  width: 38rpx;
+  height: 38rpx;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 38rpx 38rpx;
+}
+.mode-pressed { opacity: .82; }
+
+.bank-hint { padding: 26rpx; color: #8497B0; font-size: 21rpx; text-align: center; }
+.bank-hint-error { color: #C4645C; }

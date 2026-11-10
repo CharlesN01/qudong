@@ -1,0 +1,41 @@
+/* 白天主题：清爽白蓝，与首页保持一致 */
+.theme-day {
+  --theme-paper: #ffffff;
+  --theme-background: #f5fafe;
+  --theme-ink: #172433;
+  --theme-muted: #8995a8;
+  --theme-accent: #247fee;
+  --theme-accent-light: #69b0f4;
+  --theme-accent-border: #dce8f0;
+  --theme-soft: #eaf4fb;
+  --theme-border: #e9eef5;
+  --theme-answer-ink: #52709a;
+  --theme-disabled: #a0abb9;
+  --theme-green: #1ba978;
+  --theme-green-soft: #e6f8f0;
+  --theme-orange: #ef8e45;
+  --theme-orange-soft: #fff1e6;
+  --theme-purple: #7660df;
+  --theme-purple-soft: #efebff;
+  --theme-shadow-rgb: 36,67,109;
+  --theme-accent-rgb: 36,127,238;
+}
+
+/* Palette only: layout, typography, interactions and API calls stay in each page. */
+.theme-day.home-page, .theme-day.application-page, .theme-day.classical-page,
+.theme-day.favorites-page, .theme-day.literature-page, .theme-day.mine-page,
+.theme-day.practice-page, .theme-day.random-page, .theme-day.resources-page,
+.theme-day.wrong-page {
+  color: #172433;
+  background: #f5fafe;
+}
+.theme-day.mine-page .profile { color: #ffffff; background: linear-gradient(135deg,#1b72db,#69b0f4); }
+.theme-day.mine-page .status { color: #ffffff; background: rgba(255,255,255,.2); }
+.theme-day.mine-page .avatar { background: rgba(255,255,255,.2); }
+.theme-day.mine-page .member-row { border-color: rgba(36,127,238,.18); }
+.theme-day.mine-page .mask, .theme-day.classical-page .modal-mask { background: rgba(21,40,68,.5); }
+.theme-day.resources-page .hero, .theme-day.application-page .hero {
+  color: #ffffff;
+  background: linear-gradient(135deg,#1b72db 0%,#3a86b9 58%,#69b0f4 100%);
+}
+.theme-day.literature-page .reading-banner { background: linear-gradient(120deg,#ffffff,#f5fafe); }
