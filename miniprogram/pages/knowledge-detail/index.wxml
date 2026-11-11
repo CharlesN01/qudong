@@ -4,9 +4,7 @@
   <view class="top">
     <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
     <text class="top-title">知识点背诵</text>
-    <view class="top-action {{favorited ? 'top-action-on' : ''}}" bindtap="toggleFavorite" hover-class="tap-dim">
-      {{favorited ? '已收藏' : '收藏'}}
-    </view>
+    <view class="top-space"></view>
   </view>
 
   <view class="main">
@@ -18,10 +16,16 @@
     <view wx:if="{{current}}" class="card">
       <view class="card-top">
         <text class="badge">{{current.topic}}</text>
-        <text class="answer-toggle" bindtap="toggleAnswer">{{showAnswer ? '隐藏答案' : '显示答案'}}</text>
+        <view class="card-actions">
+          <view class="k-icon" role="button" bindtap="toggleCard" hover-class="tap-dim">☷</view>
+          <view class="k-icon {{favorited ? 'k-icon-on' : ''}}" role="button" bindtap="toggleFavorite" hover-class="tap-dim">{{favorited ? '★' : '☆'}}</view>
+        </view>
       </view>
 
-      <text class="prompt">背诵要点</text>
+      <view class="prompt-row">
+        <text class="prompt">背诵要点</text>
+        <text class="answer-toggle" bindtap="toggleAnswer">{{showAnswer ? '隐藏答案' : '显示答案'}}</text>
+      </view>
       <text class="question">{{current.q}}</text>
 
       <view wx:if="{{showAnswer}}" class="answer">
@@ -48,6 +52,30 @@
           <text class="page-select-arrow">▾</text>
         </view>
       </picker>
+    </view>
+  </view>
+
+  <!-- 本册条目：点 ☷ 打开，按题号列出这本书的全部背诵条目，点号跳转 -->
+  <view wx:if="{{showCard}}" class="sheet-mask" bindtap="toggleCard">
+    <view class="sheet" catchtap="noop">
+      <view class="sheet-head">
+        <text class="sheet-title">本册条目</text>
+        <text class="sheet-close" bindtap="toggleCard">×</text>
+      </view>
+      <text class="sheet-hint">{{bookName}} · 共 {{total}} 条 · 点题号直接跳转，收藏条目带星标</text>
+      <view class="card-grid">
+        <view
+          wx:for="{{cardItems}}"
+          wx:key="index"
+          class="card-cell {{item.current ? 'card-cell-on' : ''}}"
+          data-index="{{item.index}}"
+          bindtap="jumpTo"
+          hover-class="tap-dim"
+        >
+          <text class="card-cell-num">{{item.number}}</text>
+          <text wx:if="{{item.favorited}}" class="card-cell-mark">★</text>
+        </view>
+      </view>
     </view>
   </view>
 </view>

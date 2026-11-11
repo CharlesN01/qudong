@@ -75,7 +75,7 @@
         <text class="feedback-text">{{correct ? '做得很好，已记录为已做题目。' : (current.objective ? '正确答案：' + current.answerText + '。再看一遍解析，巩固这个知识点。' : '参考答案：' + current.answerText)}}</text>
       </view>
 
-      <view wx:if="{{revealed && !submitted && !current.graded}}" class="self-mark">
+      <view wx:if="{{revealed && !submitted && !current.graded && !recite}}" class="self-mark">
         <view class="self-btn" data-known="no" bindtap="markSelf" hover-class="tap-dim">还不会</view>
         <view class="self-btn self-btn-on" data-known="yes" bindtap="markSelf" hover-class="tap-dim">我会了</view>
       </view>
@@ -114,8 +114,10 @@
 
   <view wx:if="{{ready}}" class="q-bottom">
     <view class="q-nav {{index <= 0 ? 'q-nav-off' : ''}}" bindtap="prevQuestion" hover-class="tap-dim">上一题</view>
-    <view wx:if="{{current.objective || current.graded}}" class="q-submit {{submitted ? 'q-submit-done' : ''}}" bindtap="submit" hover-class="tap-dim">{{submitted ? '已提交' : '提交答案'}}</view>
-    <view wx:else class="q-submit" bindtap="submit" hover-class="tap-dim">{{revealed ? '收起答案' : '查看参考答案'}}</view>
+    <block wx:if="{{!recite}}">
+      <view wx:if="{{current.objective || current.graded}}" class="q-submit {{submitted ? 'q-submit-done' : ''}}" bindtap="submit" hover-class="tap-dim">{{submitted ? '已提交' : '提交答案'}}</view>
+      <view wx:else class="q-submit" bindtap="submit" hover-class="tap-dim">{{revealed ? '收起答案' : '查看参考答案'}}</view>
+    </block>
     <view class="q-nav {{index >= total - 1 ? 'q-nav-off' : ''}}" bindtap="nextQuestion" hover-class="tap-dim">下一题</view>
   </view>
 

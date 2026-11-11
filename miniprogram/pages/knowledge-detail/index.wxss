@@ -30,15 +30,8 @@
   font-size: 32rpx;
   font-weight: 700;
 }
-.top-action {
+.top-space {
   width: 130rpx;
-  text-align: right;
-  color: #8793a4;
-  font-size: 24rpx;
-}
-.top-action-on {
-  color: #e08b3a;
-  font-weight: 600;
 }
 
 .main {
@@ -94,14 +87,45 @@
   color: #5278ba;
   font-size: 22rpx;
 }
-.answer-toggle {
+.card-actions {
+  flex: none;
+  margin-left: auto;
+  display: flex;
+  gap: 10rpx;
+}
+.k-icon {
+  width: 54rpx;
+  height: 54rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #dfe9f3;
+  border-radius: 14rpx;
+  background: #f8fbfe;
+  color: #8395a8;
+  font-size: 28rpx;
+  line-height: 1;
+}
+.k-icon-on {
+  border-color: #e6bd68;
+  background: #fff4df;
+  color: #bc842d;
+}
+
+.prompt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  margin: 34rpx 0 16rpx;
+}
+.prompt {
+  display: block;
   color: #8793a4;
   font-size: 22rpx;
 }
-
-.prompt {
-  display: block;
-  margin: 48rpx 0 16rpx;
+.answer-toggle {
+  flex: none;
   color: #8793a4;
   font-size: 22rpx;
 }
@@ -201,6 +225,79 @@
 .page-select-arrow {
   color: #8ba3c4;
   font-size: 22rpx;
+}
+
+/* ---------- 本册条目弹层 ---------- */
+.sheet-mask {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(28, 44, 64, 0.42);
+}
+.sheet {
+  width: 100%;
+  max-height: 76vh;
+  overflow: auto;
+  padding: 26rpx 24rpx calc(30rpx + env(safe-area-inset-bottom));
+  border-radius: 28rpx 28rpx 0 0;
+  background: #ffffff;
+  box-sizing: border-box;
+}
+.sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+.sheet-title {
+  color: #223954;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+.sheet-close {
+  padding: 0 10rpx;
+  color: #7b8ba0;
+  font-size: 40rpx;
+  line-height: 1;
+}
+.sheet-hint {
+  display: block;
+  margin: 10rpx 0 22rpx;
+  color: #8793a4;
+  font-size: 20rpx;
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 14rpx;
+}
+.card-cell {
+  position: relative;
+  height: 76rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx solid #e0e6ed;
+  border-radius: 14rpx;
+  background: #f8fafc;
+  color: #314760;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+.card-cell-on {
+  border-color: #9cbef0;
+  background: #e9f1ff;
+  color: #2f5ea8;
+}
+.card-cell-mark {
+  position: absolute;
+  top: 5rpx;
+  right: 9rpx;
+  color: #e0a544;
+  font-size: 17rpx;
+  line-height: 1;
 }
 
 .tap-dim {

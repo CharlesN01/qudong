@@ -1,0 +1,40 @@
+<view class="page">
+  <safe-top />
+
+  <view class="top">
+    <view class="back" bindtap="goBack" hover-class="tap-dim">‹ 返回</view>
+    <text class="top-title">{{bookName}}</text>
+    <view class="top-space"></view>
+  </view>
+
+  <view class="main">
+    <view class="headline">
+      <text class="headline-title">{{subjectName}} · 背诵</text>
+      <text class="headline-count">共 {{total}} 条</text>
+    </view>
+
+    <view class="legend">
+      <view class="legend-item"><view class="dot dot-seen"></view><text class="legend-text">已背</text></view>
+      <view class="legend-item"><view class="dot dot-todo"></view><text class="legend-text">未背</text></view>
+      <text class="legend-count">已背 {{seenCount}} / {{total}}</text>
+    </view>
+
+    <view class="grid-panel">
+      <view class="grid-head">
+        <text class="grid-title">题号</text>
+        <text class="grid-hint">点题号开始背</text>
+      </view>
+      <view class="question-grid">
+        <view
+          wx:for="{{items}}"
+          wx:key="index"
+          class="question {{item.seen ? 'q-seen' : ''}}"
+          data-index="{{item.index}}"
+          bindtap="openItem"
+          hover-class="q-pressed"
+        >{{item.number}}</view>
+      </view>
+      <text wx:if="{{!items.length}}" class="empty-text">这本书还没有背诵条目</text>
+    </view>
+  </view>
+</view>

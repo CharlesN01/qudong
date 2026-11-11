@@ -32,7 +32,7 @@ function jsonCopy(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-test('17 个原生路由承载原型状态所需页面均已注册', () => {
+test('18 个原生路由承载原型状态所需页面均已注册', () => {
   const config = JSON.parse(fs.readFileSync(path.join(root, 'miniprogram/app.json'), 'utf8'));
   assert.deepEqual(config.pages, [
     // 文学 / 文言 / 专项 / 随机 四个页面已按 11-10 设计稿移除
@@ -40,7 +40,8 @@ test('17 个原生路由承载原型状态所需页面均已注册', () => {
     'pages/application/index', 'pages/mine/index', 'pages/resources/index', 'pages/wrong/index', 'pages/bank/index',
     // 11-10 按「首页上刷题页面定稿」补充：题库列表页 + 答题页
     'pages/bank-question/index', 'pages/bank-list/index',
-    'pages/knowledge/index', 'pages/knowledge-detail/index',
+    // 11-11 知识点背诵独立出题号页（不共用刷题记录）
+    'pages/knowledge/index', 'pages/knowledge-list/index', 'pages/knowledge-detail/index',
     'pages/mock/index', 'pages/mock-paper/index',
     'pages/dictation/index', 'pages/cert/index', 'pages/cert-recite/index'
   ]);

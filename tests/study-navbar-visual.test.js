@@ -57,6 +57,7 @@ test('窗口 API 或胶囊数据缺失仍保留独立导航行', () => {
 const CUSTOM_HEADER_PAGES = [
   'pages/bank/index',
   'pages/knowledge/index',
+  'pages/knowledge-list/index',
   'pages/knowledge-detail/index',
   'pages/mock/index',
   'pages/mock-paper/index',

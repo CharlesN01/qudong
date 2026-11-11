@@ -4,7 +4,7 @@ const progress = require('../../utils/bank-progress');
 const rich = require('../../utils/rich-text');
 const questionType = require('../../utils/question-type');
 
-const MODE_NAMES = { quick: '简练刷题', chapter: '章节练习', exam: '真题练习' };
+const MODE_NAMES = { quick: '简练刷题', chapter: '章节练习', exam: '真题练习', recite: '背诵' };
 const BOARD_COLORS = ['#202923', '#3E68D8', '#E4564F', '#0B9F5A', '#ED8B32'];
 
 function baseUrl() { return apiConfig.getApiBaseUrl(); }
@@ -25,6 +25,7 @@ Page({
     mode: '',
     modeName: '',
     headerTitle: '',
+    recite: false,
     explainOpen: false,
     chapterName: '',
     title: '',
@@ -62,6 +63,9 @@ Page({
     }
 
     const index = Math.min(Math.max(toNumber(options && options.index), 0), queue.items.length - 1);
+    const recited = String((options && options.recite) || '') === '1' || queue.mode === 'recite';
+    const modeName = recited ? '背诵'
+      : (MODE_NAMES[queue.mode] || (queue.scope === 'wrong' ? '错题本' : queue.scope === 'fav' ? '收藏本' : '题库'));
     this._queue = queue;
     this._enterAt = Date.now();
 
@@ -71,9 +75,10 @@ Page({
       rightSpace: metrics.rightSpace || 100,
       subject: queue.subject || '',
       subjectName: queue.subjectName || '',
+      recite: recited,
       mode: queue.mode || '',
-      modeName: MODE_NAMES[queue.mode] || (queue.scope === 'wrong' ? '错题本' : queue.scope === 'fav' ? '收藏本' : '题库'),
-      headerTitle: (queue.subjectName || '题库') + ' · ' + (MODE_NAMES[queue.mode] || (queue.scope === 'wrong' ? '错题本' : queue.scope === 'fav' ? '收藏本' : '题库')),
+      modeName,
+      headerTitle: (queue.subjectName || '题库') + ' · ' + modeName,
       chapterName: queue.chapterName || queue.chapter || '全部章节',
       title: queue.title || '',
       total: queue.items.length,
@@ -110,6 +115,14 @@ Page({
       state: ''
     }));
 
+    // 背诵模式：正确项直接标绿，答案与解析默认展开，不写做题记录
+    if (this.data.recite) {
+      const answerKeys = (question.answer || []).map((item) => String(item).trim().toUpperCase());
+      options.forEach((option) => {
+        option.state = answerKeys.indexOf(option.key) !== -1 ? 'right' : '';
+      });
+    }
+
     this.setData({
       index,
       current: Object.assign({}, question, {
@@ -125,7 +138,8 @@ Page({
       }),
       submitted: false,
       correct: false,
-      revealed: false,
+      revealed: Boolean(this.data.recite),
+      explainOpen: this.data.recite ? true : this.data.explainOpen,
       selfMarked: false,
       draft: '',
       favorite,

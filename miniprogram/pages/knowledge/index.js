@@ -92,11 +92,12 @@ Page({
     this.setData({ favoriteGroups: groups });
   },
 
+  // 点书卡先进这本书的背诵题号页，再点题号看对应条目
   openBook(event) {
     const bookId = event.currentTarget.dataset.id;
     if (!bookId) return;
     wx.navigateTo({
-      url: '/pages/knowledge-detail/index?subjectId=' + this.data.activeSubject + '&bookId=' + bookId
+      url: '/pages/knowledge-list/index?subjectId=' + this.data.activeSubject + '&bookId=' + bookId
     });
   },
 

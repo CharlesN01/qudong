@@ -11,6 +11,7 @@
     "pages/bank-question/index",
     "pages/bank-list/index",
     "pages/knowledge/index",
+    "pages/knowledge-list/index",
     "pages/knowledge-detail/index",
     "pages/mock/index",
     "pages/mock-paper/index",

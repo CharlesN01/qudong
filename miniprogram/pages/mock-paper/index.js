@@ -2,6 +2,7 @@ const latex = require('../../utils/latex');
 const rich = require('../../utils/rich-text');
 const questionType = require('../../utils/question-type');
 const { getNavigationMetrics } = require('../../utils/safe-top');
+const { decodeParam } = require('../../utils/params');
 
 const apiConfig = require('../../services/api-config');
 // 后端地址统一从 services/api-config.js 取，换服务器只改那一处
@@ -77,10 +78,10 @@ Page({
   onLoad(query) {
     const metrics = getNavigationMetrics(typeof wx !== 'undefined' ? wx : null);
     const subjectId = query.subjectId || '';
-    const examName = decodeURIComponent(query.name || '');
-    const examId = decodeURIComponent(query.examId || '') || (subjectId + '::' + examName);
+    const examName = decodeParam(query.name);
+    const examId = decodeParam(query.examId) || (subjectId + '::' + examName);
     const resume = String(query.resume || '0') === '1';
-    const rawSources = decodeURIComponent(query.sources || '');
+    const rawSources = decodeParam(query.sources);
     const sources = rawSources
       ? rawSources.split('|').map((item) => item.trim()).filter(Boolean)
       : (examName ? [examName] : []);

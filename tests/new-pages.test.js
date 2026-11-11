@@ -300,6 +300,40 @@ test('知识点背诵页：页码选择直接跳页', () => {
   assert.equal(page.data.pageIndex, 2);
 });
 
+test('知识点背诵页：☷ 打开本册条目，点题号跳转', () => {
+  const { wx } = createWx();
+  const page = loadPage('pages/knowledge-detail/index.js', {}, { wx });
+  page.onLoad({ subjectId: 'math', bookId: 'math-limit' });
+
+  assert.equal(page.data.showCard, false);
+  assert.equal(page.data.cardItems.length, 4);
+  assert.equal(page.data.cardItems[0].current, true);
+
+  page.toggleCard();
+  assert.equal(page.data.showCard, true);
+
+  page.jumpTo({ currentTarget: { dataset: { index: 2 } } });
+  assert.equal(page.data.showCard, false);
+  assert.equal(page.data.index, 2);
+  assert.equal(page.data.cardItems[2].current, true);
+  assert.equal(page.data.cardItems[0].current, false);
+});
+
+test('知识点背诵页：星标收藏与条目面板同步', () => {
+  const { wx, storage } = createWx();
+  const page = loadPage('pages/knowledge-detail/index.js', {}, { wx });
+  page.onLoad({ subjectId: 'math', bookId: 'math-limit' });
+
+  page.toggleFavorite();
+  assert.equal(page.data.favorited, true);
+  assert.equal(page.data.cardItems[0].favorited, true);
+  assert.equal(storage['knowledge-favorites.v1'].length, 1);
+
+  page.jumpTo({ currentTarget: { dataset: { index: 1 } } });
+  assert.equal(page.data.favorited, false);
+  assert.equal(page.data.cardItems[0].favorited, true, '切换条目后原收藏星标仍保留');
+});
+
 // ---------------------------------------------------------------- mock 页
 
 function mockResponses() {
@@ -844,4 +878,151 @@ test('latex：选项超过 8 个时字母继续往后排（英语选词填空 12
   const hit = options.filter((item) => answer.indexOf(item.letter) >= 0);
   assert.equal(hit.length, 1);
   assert.equal(hit[0].text, 'j');
+});
+
+// ------------------------------------------------------- 页面参数解码（乱码问题）
+
+test('页面参数：编码过的科目名要解码成中文', () => {
+  const { decodeParam } = require('../miniprogram/utils/params');
+  assert.equal(decodeParam(encodeURIComponent('高数一')), '高数一');
+  assert.equal(decodeParam('高数一'), '高数一', '已解码的明文原样返回');
+  assert.equal(decodeParam('正确率 50%'), '正确率 50%', '含裸 % 不抛错');
+  assert.equal(decodeParam(''), '');
+  assert.equal(decodeParam(undefined), '');
+});
+
+test('刷题首页：URL 里的科目名不再显示成 %E9%AB%98…', () => {
+  const { wx } = createWx();
+  const page = loadPage('pages/bank/index.js', {}, { wx });
+  page.onLoad({ subject: 'math1', name: encodeURIComponent('高数一') });
+  assert.equal(page.data.subjectName, '高数一');
+});
+
+test('题库列表页：标题由解码后的科目名拼接', () => {
+  const { wx } = createWx();
+  const page = loadPage('pages/bank-list/index.js', {}, { wx });
+  page.onLoad({ subject: 'math1', name: encodeURIComponent('高数二'), mode: 'quick' });
+  assert.equal(page.data.subjectName, '高数二');
+  assert.equal(page.data.title, '高数二 · 简练刷题');
+});
+
+// ------------------------------------- 知识点科目 → 背诵题库（题号页 + 背诵模式）
+
+test('知识点页：点书卡进这本书的背诵题号页', () => {
+  const { wx, calls } = createWx();
+  const page = loadPage('pages/knowledge/index.js', {}, { wx });
+  page.onLoad();
+
+  page.switchSubject({ currentTarget: { dataset: { id: 'chinese' } } });
+  assert.equal(calls.navigate.length, 0, '左侧只切换，不跳转');
+
+  page.openBook({ currentTarget: { dataset: { id: 'chinese-poem' } } });
+  const nav = calls.navigate.find((item) => item.url && item.url.indexOf('/pages/knowledge-list/index') === 0);
+  assert.ok(nav, '点书卡应进入背诵题号页');
+  assert.ok(nav.url.includes('subjectId=chinese'));
+  assert.ok(nav.url.includes('bookId=chinese-poem'));
+});
+
+test('背诵题号页：只读背诵自己的进度，不掺刷题记录', () => {
+  const { wx, storage } = createWx();
+  // 刷题记录里把这批题标成做错/做对，背诵页不能受影响
+  storage['bank-record:math'] = JSON.stringify({ q1: { done: true, wrong: true } });
+
+  const page = loadPage('pages/knowledge-list/index.js', {}, { wx });
+  page.onLoad({ subjectId: 'math', bookId: 'math-limit' });
+
+  assert.equal(page.data.bookName, '函数、极限与连续');
+  assert.equal(page.data.total, 4);
+  assert.equal(page.data.seenCount, 0, '刷题记录不应让背诵条目变色');
+  assert.equal(page.data.items.filter((item) => item.seen).length, 0);
+
+  storage['knowledge-records.v1'] = JSON.stringify({ 'math|math-limit': [1, 3] });
+  page.buildItems();
+  assert.equal(page.data.seenCount, 2);
+  assert.equal(page.data.items[1].seen, true);
+  assert.equal(page.data.items[0].seen, false);
+});
+
+test('背诵题号页：点题号进对应条目', () => {
+  const { wx, calls } = createWx();
+  const page = loadPage('pages/knowledge-list/index.js', {}, { wx });
+  page.onLoad({ subjectId: 'math', bookId: 'math-limit' });
+  page.openItem({ currentTarget: { dataset: { index: 2 } } });
+
+  const nav = calls.navigate.find((item) => item.url && item.url.indexOf('/pages/knowledge-detail/index') === 0);
+  assert.ok(nav);
+  assert.ok(nav.url.includes('subjectId=math'));
+  assert.ok(nav.url.includes('bookId=math-limit'));
+  assert.ok(nav.url.includes('index=2'));
+});
+
+test('背诵详情页：翻到哪条就把哪条记为已背', () => {
+  const { wx, storage } = createWx();
+  const page = loadPage('pages/knowledge-detail/index.js', {}, { wx });
+  page.onLoad({ subjectId: 'math', bookId: 'math-limit' });
+  page.goTo(2);
+
+  const seen = JSON.parse(storage['knowledge-records.v1'])['math|math-limit'];
+  assert.deepEqual(seen.sort(), [0, 2], '打开第 1、第 3 条后都算已背');
+});
+
+test('题库列表页：背诵模式标题、点题号带 recite=1', () => {
+  const { wx, calls } = createWx();
+  const page = loadPage('pages/bank-list/index.js', {}, { wx });
+  page.onLoad({ subject: 'math1', name: encodeURIComponent('高等数学'), mode: 'recite' });
+  assert.equal(page.data.title, '高等数学 · 背诵');
+
+  page.data.items = [{ number: 1, id: 'q1', question: { id: 'q1', type: 'single', stem: '题干' } }];
+  page.openQuestion({ currentTarget: { dataset: { index: 0 } } });
+  const nav = calls.navigate.find((item) => item.url && item.url.indexOf('/pages/bank-question') === 0);
+  assert.ok(nav, '应进入答题页');
+  assert.ok(nav.url.includes('recite=1'));
+});
+
+test('答题页：背诵模式直接展开答案、标绿正确项、不写做题记录', () => {
+  const queue = {
+    subject: 'math1',
+    subjectName: '高等数学',
+    mode: 'recite',
+    items: [{
+      id: 'q1',
+      number: 1,
+      type: 'single',
+      renderKind: 'choice',
+      stem: '1 + 1 = ?',
+      options: ['1', '2', '3'],
+      answer: ['B'],
+      explanation: '显然等于 2。'
+    }]
+  };
+  const { wx, storage } = createWx({ storage: { 'bank-queue': queue } });
+  const page = loadPage('pages/bank-question/index.js', {}, { wx });
+  page.onLoad({ index: 0, recite: '1' });
+
+  assert.equal(page.data.recite, true);
+  assert.equal(page.data.revealed, true);
+  assert.equal(page.data.explainOpen, true, '解析默认展开');
+  assert.equal(page.data.submitted, false, '背诵不提交判分');
+
+  const right = page.data.current.optionList.filter((item) => item.state === 'right');
+  assert.equal(right.length, 1);
+  assert.equal(right[0].key, 'B');
+
+  const recordKeys = Object.keys(storage).filter((key) => key.indexOf('bank-record') === 0 || key.indexOf('bank-stats') === 0);
+  assert.deepEqual(recordKeys, [], '背诵浏览不应写入做题记录');
+});
+
+test('答题页：普通模式不会自动展开答案', () => {
+  const queue = {
+    subject: 'math1',
+    subjectName: '高等数学',
+    mode: 'quick',
+    items: [{ id: 'q2', number: 1, type: 'single', renderKind: 'choice', stem: '2 + 2 = ?', options: ['3', '4'], answer: ['B'] }]
+  };
+  const { wx } = createWx({ storage: { 'bank-queue': queue } });
+  const page = loadPage('pages/bank-question/index.js', {}, { wx });
+  page.onLoad({ index: 0 });
+  assert.equal(page.data.recite, false);
+  assert.equal(page.data.revealed, false);
+  assert.equal(page.data.current.optionList.filter((item) => item.state).length, 0);
 });

@@ -2,6 +2,7 @@ const apiConfig = require('../../services/api-config');
 // 后端地址统一从 services/api-config.js 取，换服务器只改那一处
 function bankApiBase() { return apiConfig.getApiBaseUrl() + '/api/student/v1'; }
 const { getNavigationMetrics } = require('../../utils/safe-top');
+const { decodeParam } = require('../../utils/params');
 const progress = require('../../utils/bank-progress');
 
 const MODES = [
@@ -43,8 +44,8 @@ Page({
   },
 
   onLoad(options) {
-    const subjectId = (options && options.subject) || 'math1';
-    const subjectName = (options && options.name) || '高数一';
+    const subjectId = decodeParam(options && options.subject) || 'math1';
+    const subjectName = decodeParam(options && options.name) || '高数一';
     const metrics = getNavigationMetrics(typeof wx !== 'undefined' ? wx : null);
     this.setData({ subjectId, subjectName, statusHeight: metrics.statusHeight || 24, navBarHeight: metrics.barHeight || 58 });
     this._chapters = [];

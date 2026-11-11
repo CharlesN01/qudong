@@ -1,4 +1,5 @@
 const knowledge = require('../../data/knowledge');
+const knowledgeProgress = require('../../utils/knowledge-progress');
 
 const FAVORITE_KEY = 'knowledge-favorites.v1';
 
@@ -35,6 +36,8 @@ Page({
     current: null,
     showAnswer: true,
     favorited: false,
+    showCard: false,
+    cardItems: [],
     pageLabels: [],
     pageIndex: 0
   },
@@ -66,12 +69,35 @@ Page({
     const points = this.data.points;
     if (!points.length) return;
     const next = Math.max(0, Math.min(points.length - 1, index));
+    // 看过就算背过，写进背诵自己的进度（与刷题记录互不影响）
+    knowledgeProgress.markSeen(wx, this.data.subjectId, this.data.bookId, next);
     this.setData({
       index: next,
       pageIndex: next,
       current: points[next],
       favorited: this.isFavorited(next)
     });
+    this.buildCardItems();
+  },
+
+  // 本册条目卡片：题号 + 是否当前条 + 是否已收藏
+  buildCardItems() {
+    const points = this.data.points || [];
+    if (!points.length) {
+      this.setData({ cardItems: [] });
+      return;
+    }
+    const favorites = readFavorites();
+    const keys = favorites.map((item) => item.key);
+    const subjectId = this.data.subjectId;
+    const bookId = this.data.bookId;
+    const cardItems = points.map((_, i) => ({
+      number: i + 1,
+      index: i,
+      current: i === this.data.index,
+      favorited: keys.indexOf(favoriteKeyOf(subjectId, bookId, i)) >= 0
+    }));
+    this.setData({ cardItems });
   },
 
   isFavorited(index) {
@@ -104,6 +130,20 @@ Page({
     this.setData({ showAnswer: !this.data.showAnswer });
   },
 
+  toggleCard() {
+    this.setData({ showCard: !this.data.showCard });
+  },
+
+  // 点题号跳到对应条目
+  jumpTo(event) {
+    const index = Number(event.currentTarget.dataset.index);
+    this.setData({ showCard: false });
+    if (Number.isNaN(index) || index === this.data.index) return;
+    this.goTo(index);
+  },
+
+  noop() {},
+
   toggleFavorite() {
     const list = readFavorites();
     const key = favoriteKeyOf(this.data.subjectId, this.data.bookId, this.data.index);
@@ -123,6 +163,7 @@ Page({
     }
     writeFavorites(nextList);
     this.setData({ favorited: !exists });
+    this.buildCardItems();
     wx.showToast({ title: exists ? '已取消收藏' : '已收藏', icon: 'none' });
   },
 

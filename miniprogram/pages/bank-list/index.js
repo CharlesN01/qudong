@@ -3,6 +3,7 @@ const { getNavigationMetrics } = require('../../utils/safe-top');
 const progress = require('../../utils/bank-progress');
 const richtext = require('../../utils/rich-text');
 const questionType = require('../../utils/question-type');
+const { decodeParam } = require('../../utils/params');
 
 function bankApiBase() { return apiConfig.getApiBaseUrl() + '/api/student/v1'; }
 
@@ -22,7 +23,7 @@ function request(path) {
 }
 
 const PAGE_SIZE = 48;
-const MODE_NAMES = { quick: '简练刷题', chapter: '章节练习', exam: '真题练习' };
+const MODE_NAMES = { quick: '简练刷题', chapter: '章节练习', exam: '真题练习', recite: '背诵' };
 const STATE_NAMES = { all: '全部', done: '已做', todo: '未做', wrong: '做错', fav: '收藏' };
 
 function toNumber(value) {
@@ -37,6 +38,7 @@ Page({
     subjectId: '',
     subjectName: '',
     mode: 'quick',
+    recite: false,
     scope: '',
     title: '题库',
     state: 'all',
@@ -75,9 +77,15 @@ Page({
     const opts = options || {};
     const metrics = getNavigationMetrics(typeof wx !== 'undefined' ? wx : null);
     const scope = String(opts.scope || '');
-    const mode = String(opts.mode || (scope ? '' : 'quick'));
-    const subjectName = decodeURIComponent(opts.name || '');
+    let mode = String(opts.mode || (scope ? '' : 'quick'));
+    const reciteFlag = String(opts.recite || '');
+    const recite = reciteFlag === '1' || reciteFlag === 'recite' || mode === 'recite';
+    if (mode === 'recite') mode = 'quick';
+    const subjectName = decodeParam(opts.name);
     const subjectId = opts.subject || '';
+    const titleTail = scope === 'wrong' ? '错题本'
+      : scope === 'fav' ? '收藏本'
+        : (recite ? '背诵' : (MODE_NAMES[mode] || '题库'));
 
     this.setData({
       statusHeight: metrics.statusHeight || 24,
@@ -86,8 +94,9 @@ Page({
       subjectName,
       scope,
       mode,
+      recite,
       canClear: !scope,
-      title: subjectName + ' · ' + (scope === 'wrong' ? '错题本' : scope === 'fav' ? '收藏本' : (MODE_NAMES[mode] || '题库'))
+      title: subjectName + ' · ' + titleTail
     });
 
     if (!subjectId) {
@@ -108,6 +117,13 @@ Page({
     }
 
     this.loadFilters().then(() => this.loadPage());
+  },
+
+  pageTitle(name) {
+    const subject = name || this.data.subjectName;
+    if (this.data.scope === 'wrong') return subject + ' · 错题本';
+    if (this.data.scope === 'fav') return subject + ' · 收藏本';
+    return subject + ' · ' + (this.data.recite ? '背诵' : (MODE_NAMES[this.data.mode] || '题库'));
   },
 
   onShow() {
@@ -141,7 +157,7 @@ Page({
         chapters,
         sections: [{ title: '全部小节', value: '' }],
         subjectName: (data.subject && data.subject.name) || this.data.subjectName,
-        title: ((data.subject && data.subject.name) || this.data.subjectName) + ' · ' + (MODE_NAMES[this.data.mode] || '题库')
+        title: this.pageTitle((data.subject && data.subject.name) || this.data.subjectName)
       });
     } catch (_) {
       this.setData({ chapters: [{ title: '全部章节', value: '', sections: [] }] });
@@ -175,7 +191,7 @@ Page({
       sourceIndex: 0,
       source: '',
       page: 1,
-      title: subject.name + ' · ' + (MODE_NAMES[this.data.mode] || '题库')
+      title: this.pageTitle(subject.name)
     }, async () => {
       await this.loadFilters();
       this.refreshView();
@@ -415,7 +431,9 @@ Page({
     } catch (_) { /* 存储失败时仍可进入答题页单题模式 */ }
 
     this._needRefresh = true;
-    wx.navigateTo({ url: '/pages/bank-question/index?index=' + index });
+    wx.navigateTo({
+      url: '/pages/bank-question/index?index=' + index + (this.data.recite ? '&recite=1' : '')
+    });
   },
 
   async backToSubject() {
