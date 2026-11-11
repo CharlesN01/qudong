@@ -6,7 +6,9 @@ project.private.config.json
 # Local Python backend environment, secrets and generated data
 backend/.venv/
 backend/.env
-backend/.local/
+# 本机运行目录：只有题图 media 需要随仓库分发，其余（配置、日志）仍留在本机
+backend/.local/*
+!backend/.local/media/
 backend/.config-*
 backend/staticfiles/
 backend/media/

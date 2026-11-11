@@ -45,6 +45,10 @@ fi
 # 6) 管理员检查
 if "$BACKEND_PY" manage.py shell -c "from accounts.models import User; import sys; sys.exit(0 if User.objects.filter(is_superuser=True,is_active=True).exists() else 1)" >/dev/null 2>&1; then
     echo "已存在管理员账号，跳过创建。"
+elif [ -n "${DJANGO_SUPERUSER_USERNAME:-}" ]; then
+    # 自动化场景（如 seed-full.sh）：用环境变量建管理员，不交互
+    "$BACKEND_PY" manage.py createsuperuser --noinput || true
+    echo "已用环境变量创建管理员：${DJANGO_SUPERUSER_USERNAME}"
 else
     "$BACKEND_PY" manage.py createsuperuser
 fi

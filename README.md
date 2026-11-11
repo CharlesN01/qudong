@@ -1,5 +1,61 @@
 # 专升本语文学习小程序
 
+> **本仓库当前是一套可直接运行的小程序 + 题库后端**：18 个原生页面、13585 道题、151 张题图都在仓库里。按下面三步操作，克隆后即可在微信开发者工具里看到与作者本机一致的界面和题目。
+
+## 快速开始（三步跑通）
+
+前置：Node.js 18+、Python 3.14（macOS：`brew install python@3.14`）。
+
+**1. 克隆并准备后端（会装依赖、建库、导入全部题库）**
+
+```bash
+git clone git@github.com:CharlesN01/qudong.git
+cd qudong/backend
+./seed-full.sh
+```
+
+**2. 启动后端**
+
+```bash
+./start.sh          # http://127.0.0.1:8000
+```
+
+可见 `/healthz` 返回 `{"status":"ok"}`、`/api/student/v1/bank/subjects/` 返回 7 个科目。
+
+**3. 用微信开发者工具打开小程序**
+
+- 选择「导入项目」，目录选**仓库根目录**（包含 `project.config.json` 与 `miniprogram/` 的那层）；
+- AppID 选「测试号」或用游客 `touristappid`；
+- 点击编译，首页即出。
+
+源码、题库、题图都在仓库内，不需要额外配置；小程序默认请求 `http://127.0.0.1:8000`（见 `miniprogram/services/api-config.js`），做题记录与收藏保存在小程序本地缓存。
+
+只想要后端 + 管理后台、不需要题库的完整数据时，用 `./setup.sh` 即可（只建库和 61 道演示题）。
+
+Windows 用户：
+
+```powershell
+cd backend
+.\setup.ps1
+.venv\Scripts\python.exe manage.py import_bank --source data\bank-questions.json --per-subject 0 --reset
+.\start.ps1
+```
+
+演示管理员账号由 `seed-full.sh` 自动创建：`localadmin / local123456`（仅本机演示，部署前请改掉）。微信登录、支付等密钥请复制 `.env.example` 后自行填写，不要提交到仓库。
+
+## 仓库结构
+
+```
+miniprogram/            小程序源码（18 页面，含首页、刷题、机构模考、知识点背诵）
+backend/                Django 5.2 后端 + 管理后台
+backend/data/           题库源（13585 题，import_bank 直接导入）
+backend/.local/media/   题图（151 张，随仓库分发）
+doc/                    接口与交付文档
+tests/  scripts/        前端测试与检查脚本
+```
+
+---
+
 **当前交付范围已调整为后端服务、Web 管理后台、接口文档及接口联调支持。甲方另行安排学员小程序前端开发。** 仓库内已有 `miniprogram/` 保留为历史原型与交互参考，不作为本阶段前端交付承诺。
 
 题库由甲方按我方规定的格式整理：[题库 Excel 模板](doc/题库导入模板-v1.xlsx)、[整理与交付说明](doc/题库整理与交付说明-v1.md)。甲方前端以[学员联调手册](doc/学员接口联调手册.md)和[OpenAPI](doc/api/student-v1.openapi.json)接入；[早期对接说明](doc/前端团队后端对接说明-v1.md)保留后台接口资料。

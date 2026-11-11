@@ -56,7 +56,8 @@ def normalize_answer(raw, options):
 def adapt_pentest(rows):
     """pentest_json 适配：字段名映射。"""
     for row in rows:
-        options = [str(item) for item in (row.get("options") or []) if str(item).strip()]
+        # 保留空选项的位置：个别题目选项里有空位，答案却引用后面的字母，过滤会导致答案越界
+        options = [str(item).strip() for item in (row.get("options") or []) if item is not None]
         yield {
             "id": str(row.get("id") or "").strip(),
             "category": str(row.get("category") or "").strip(),
